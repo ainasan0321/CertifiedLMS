@@ -70,7 +70,7 @@ class UserQaThreadController extends Controller
                 }
             })
         ->latest() //新着順
-        ->paginate(10);
+        ->paginate(20);
 
         return view('qa-thread.index', compact('filters', 'certifications', 'publishedStatus', 'threads'));
     }
