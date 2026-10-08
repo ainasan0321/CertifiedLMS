@@ -18,6 +18,7 @@ class QaThreadSeeder extends Seeder
      */
     public function run(): void
     {
+        // 人物の取得
         $student = User::where('role', 'student')->first();
 
         $otherStudent = User::where('role', 'student')->skip(1)->first() ?? $student;
@@ -34,13 +35,14 @@ class QaThreadSeeder extends Seeder
 
         $count = 1;
 
+        // 未解決
         foreach($certifications as $cert) {
             $thread = QaThread::create([
                 'certification_id' => $cert->id,
                 'user_id' => $student->id,
                 'title' => "未解決の質問テスト (No.{$count})",
                 'body' => "未解決のスレッドです。",
-                'status' => QaTreadStatus::Unresolved->value,
+                'status' => QaThreadStatus::Unresolved->value,
                 'created_at' => $now->copy()->subHours($count),
                 'updated_at' => $now->copy()->subHours($count),
             ]);
@@ -48,19 +50,20 @@ class QaThreadSeeder extends Seeder
 
             if($coach) {
                 QaReply::create([
-                    'qa_thread_id' => $thread1->id,
+                    'qa_thread_id' => $thread->id,
                     'user_id' => $coach->id,
                     'body' => 'コーチからの回答です。',
                 ]);
             }
         }
 
-        QaTread::create([
+        // 解決済
+        QaThread::create([
             'certification_id' => $cert->id,
             'user_id' => $student->id,
             'title' => "解決済の質問テスト (No.{$count})",
             'body' => "解決済のスレッドです。",
-            'status' => QaTreadStatus::Resolved->value,
+            'status' => QaThreadStatus::Resolved->value,
             'created_at' => $now->copy()->subDays($count),
             'updated_at' => $now->copy()->subDays($count),
         ]);
