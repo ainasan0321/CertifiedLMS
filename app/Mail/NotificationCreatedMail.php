@@ -33,7 +33,7 @@ class NotificationCreatedMail extends Mailable
 
         // これから届くメールの件名を設定
         return new Envelope(
-            subject: '【LMS通知】' . $title,
+            subject: '[Certify LMS] <通知タイトル>' . $title,
         );
     }
 

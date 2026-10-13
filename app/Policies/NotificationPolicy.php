@@ -13,8 +13,7 @@ class NotificationPolicy
      */
     public function update(User $user, Notification $notification): bool
     {
-        return $notification->notifiable_type === User::class
-            && $notification->notifiable_id === $user->id;
+        return (string)$notification->notifiable_id === (string)$user->id;
     }
 
 

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\QaThread;
 use App\Models\QaReply;
 use App\Models\Certification;
+use App\Models\User;
+use App\Models\Notification;
 use App\Enums\CertificationStatus;
 use App\Enums\QaThreadStatus;
 use App\Http\Requests\QaBoard\StoreQaThreadRequest;
@@ -123,13 +125,51 @@ class UserQaThreadController extends Controller
 
         // データベースに安全に保存
         // 初期状態は必ず未解決
-        QaThread::create([
+        $thread = QaThread::create([
             'certification_id' => $validated['certification_id'],
             'user_id' => $request->user()->id,
             'title' => $validated['title'],
             'body' => $validated['body'],
-            'status' => \App\Enums\QaThreadStatus::Unresolved->value,
+            'status' => QaThreadStatus::Unresolved->value,
         ]);
+
+        $sender = $request->user();
+
+        // 【通知基盤】Q&A返信・回答投稿時の通知発火
+        if ($sender->role->value === 'student') {
+            $coaches = User::whereHas('assignedCertifications', function ($query) use ($thread) {
+                $query->where('certifications.id', $thread->certification_id);
+            })->get();
+
+            if ($coaches->isEmpty()) {
+                $defaultCoach = User::where('role', 'coach')->first();
+                if ($defaultCoach) $coaches = collect([$defaultCoach]);
+            }
+
+            foreach ($coaches as $targetCoach) {
+                Notification::sendNotification(
+                    $targetCoach,
+                    '質問スレッドに新しい質問が届きました',
+                    'qa_reply_received',
+                    "受講生（{$sender->name}様）が「{$thread->title}」の質問に返信を投稿しました。",
+                    "/qa-board/{$thread->id}"
+                );
+            }
+        }
+
+        elseif($sender->role->value === 'coach'){
+            $targetStudent = $thread->user;
+
+            if($targetStudent && $targetStudent->id !== $sender->id){
+                Notification::sendNotification(
+                    $targetStudent,
+                    '質問に新しい回答が届きました',
+                    'qa_reply_received',
+                    "コーチ（{$sender->name}様）から「{$thread->title}」の質問に回答が投稿されました。",
+                    "/qa-board/{$thread->id}"
+                );
+            }
+        }
 
         return redirect()->route('qa-board.index')->with('success', '質問を投稿しました。');
     }
@@ -143,11 +183,37 @@ class UserQaThreadController extends Controller
         $thread = QaThread::findOrFail($thread);
 
         // データベースに安全に保存
-        QaReply::create([
+        $reply = QaReply::create([
             'qa_thread_id' => $thread->id,
             'user_id' => $request->user()->id,
             'body' => $validated['body'],
         ]);
+
+        // 受講生からの返信投稿時の通知
+        $student = $request->user();
+
+        // 質問が担当コーチを自動特定
+        $coaches = User::whereHas('assignedCertifications', function ($query) use ($thread) {
+            $query->where('certifications.id', $thread->certification_id);
+        })->get();
+
+        // 担当コーチが1人も見つからない場合のセーフティ()
+        if ($coaches->isEmpty()) {
+            $defaultCoach = User::where('role', Role::Coach ?? 'coach')->first();
+            if ($defaultCoach) {
+                $coaches = collect([$defaultCoach]);
+            }
+        }
+
+        foreach ($coaches as $targetCoach){
+            Notification::sendNotification(
+                $targetCoach,
+                '質問スレッドに新しい返信が届きました。',
+                'qa_reply_received',
+                "受講生（{$student->name}様）が「{$thread->title}」の質問に返信を投稿しました。",
+                "/admin/qa-board/{$thread->id}"
+            );
+        }
 
         return redirect()->route('qa-board.show', $thread->id)->with('success', '回答を投稿しました。');
     }

@@ -14,28 +14,26 @@ class NotificationSeeder extends Seeder
      */
     public function run(): void
     {
-        // テスト対象となる受講生(student)とコーチ(coach)をデータベースから取得
-        $student = User::where('role', 'student')->first() ?? User::first();
-        $coach = User::where('role', 'coach')->first() ?? User::where('id','!=', $student?->id)->first() ?? $student;
+        $users = User::all();
 
-        if (!$student) {
+        if ($users->isEmpty()) {
             return;
         }
 
-        $unreadTarget = 8;
-        $readTarget = 7;
+        $unreadTarget = 15;
+        $readTarget = 15;
 
         $types = [[
                 'title' => '新着チャットメッセージ',
                 'type' => 'chat_message_received',
                 'body' => '担当者から新しいメッセージが届いています。',
-                'url' => '/chat',
+                'url' => '/chat-rooms',
             ],
             [
                 'title' => '質問に新しい回答が届きました',
                 'type' => 'qa_reply_received',
                 'body' => 'あなたの投稿した質問に新着の回答があります。',
-                'url' => '/qa',
+                'url' => '/qa-board',
             ],
             [
                 'title' => '定期面談の予約が確定しました',
@@ -51,7 +49,7 @@ class NotificationSeeder extends Seeder
             ],
         ];
 
-        foreach ([$student, $coach] as $user) {
+        foreach ($users as $user) {
             $totalCreated = 0;
 
             // 未読通知を指定件数15件作成
@@ -95,9 +93,6 @@ class NotificationSeeder extends Seeder
                     'created_at' => now()->subDays($totalCreated),
                 ]);
 
-                if ($user->email) {
-                    \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\NotificationCreatedMail($notification));
-                }
             }
         }
     }
