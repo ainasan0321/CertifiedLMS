@@ -40,6 +40,5 @@ class QaThread extends Model
     {
         return $this->belongsTo(Certification::class);
     }
-
-
+    
 }

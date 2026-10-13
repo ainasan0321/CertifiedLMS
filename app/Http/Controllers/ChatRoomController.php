@@ -10,6 +10,8 @@ use App\Http\Requests\Chat\IndexAsCoachRequest;
 use App\Http\Requests\Chat\IndexRequest;
 use App\Http\Requests\Chat\StoreMessageRequest;
 use App\Models\ChatRoom;
+use App\Models\User;
+use App\Models\Notification;
 use App\Services\ChatUnreadCountService;
 use App\UseCases\Chat\ShowAction;
 use App\UseCases\Chat\StoreMessageAction;
@@ -147,6 +149,38 @@ class ChatRoomController extends Controller
 
         $action($user, $room, $request->validated());
 
+        // ===============================================
+        // 【追記】通知基盤:チャットメッセージ投稿時の通知発火
+        // ===============================================
+        $student = $room->enrollment->user ?? User::find($room->enrollment->user_id ?? $room->enrollment->student_id);
+        $coaches = $room->enrollment->certification->coaches;
+
+        // 受講生が送信した場合：紐づくコーチ全員に通知
+        if($user->role->value === 'student') {
+            foreach ($coaches as $targetCoach) {
+                Notification::sendNotification(
+                    $targetCoach,
+                    '新着チャットメッセージ',
+                    'chat_message_received',
+                    "受講生（{$user->name}様）から新しいチャットメッセージが届いています。",
+                    "/chat-rooms/{$room->id}"
+                );
+            }
+        }
+
+        // コーチが返信した場合：受講生への通知
+        else {
+            if($student && student->id !== $user->id){
+                Notification::sendNotification(
+                    $student,
+                    '新着チャットメッセージ',
+                    'chat_message_received',
+                    "コーチ（{$user->name}様）から新しいチャットメッセージが届いています。",
+                    "/chat-rooms/{$room->id}"
+                );
+            }
+        }
+        
         return redirect()
             ->route('chat.show', $room)
             ->with('success', 'メッセージを送信しました。');

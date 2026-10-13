@@ -24,6 +24,7 @@ use App\Http\Controllers\MockExamController;
 use App\Http\Controllers\MockExamQuestionController;
 use App\Http\Controllers\MockExamSessionController;
 use App\Http\Controllers\MockExamSessionMonitorController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PartController;
 use App\Http\Controllers\QuestionCategoryController;
 use App\Http\Controllers\QuizHistoryController;
@@ -77,6 +78,21 @@ Route::middleware('auth')->group(function () {
         ->name('enrollments.show');
 });
 
+// ============================================================
+// 認証ユーザー専用ルート 通知機能
+// ============================================================
+Route::middleware(['auth'])
+    ->prefix('notifications')
+    ->name('notifications.')
+    ->group(function () {
+        // 通知一覧
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        // 個別既読
+        Route::post('{notification}/read', [NotificationController::class, 'read'])->name('markAsRead');
+        // まとめて既読
+        Route::post('read-all', [NotificationController::class, 'markAllAsRead'])->name('markAllAsRead');
+    });
+    
 // ============================================================
 // 受講生専用ルート(受講中ステータスのみ通過、卒業ステータスはロック)
 // ============================================================
