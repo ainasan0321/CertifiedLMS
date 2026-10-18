@@ -37,6 +37,17 @@ class BrowseController extends Controller
 
         $tab = $request->query('tab') === 'quizzes' ? 'quizzes' : 'contents';
 
+        $enrollment->setRelation('goals', $enrollment->goals()
+            ->orderBy('achieved_at', 'asc')
+            ->orderBy('target_date', 'asc')
+            ->get()
+        );
+
+        $data = $action($enrollment, $tab);
+
+        $data['enrollment'] = $enrollment;
+        $data['goals'] = $enrollment->goals;
+
         return view('learning.enrollments.show', $action($enrollment, $tab));
     }
 
