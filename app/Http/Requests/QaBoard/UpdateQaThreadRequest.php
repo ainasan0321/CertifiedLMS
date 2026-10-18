@@ -32,11 +32,9 @@ class UpdateQaThreadRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'title.required' => 'タイトルの入力は必須です。',
-            'title.string' => 'タイトルは文字列で入力してください。',
+            'title.required' => 'タイトルは必須です。',
             'title.max' => 'タイトルは200文字以内で入力してください。',
-            'body.required' => '本文の入力は必須です。',
-            'body.string' => '本文は文字列で入力してください。',
+            'body.required' => '本文は必須です。',
             'body.max' => '本文は5000文字以内で入力してください。',
         ];
     }
