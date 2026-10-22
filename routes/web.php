@@ -14,6 +14,7 @@ use App\Http\Controllers\ContentSearchController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\EnrollmentGoalController;
+use App\Http\Controllers\EnrollmentNoteController;
 use App\Http\Controllers\EnrollmentManagementController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LearningHourTargetController;
@@ -186,6 +187,21 @@ Route::middleware(['auth', 'role:student', 'active-learning'])->group(function (
     // 達成解除
     Route::delete('/enrollment-goals/{goal}/achieve', [EnrollmentGoalController::class, 'unmarkAchieved'])
         ->name('enrollment-goals.unmarkAchieved');
+});
+
+// ============================================================
+// コーチ・管理者用ルート 受講生メモの管理(S-B-07)
+// ============================================================
+Route::middleware(['auth', 'role:coach,admin'])->group(function () {
+    Route::post('/enrollments/{enrollment}/notes', [EnrollmentNoteController::class, 'store'])->name('enrollments.notes.store');
+
+    Route::prefix('enrollment-notes')
+        ->name('enrollment-notes.')
+        ->group(function () {
+            Route::get('{note}/edit', [EnrollmentNoteController::class, 'edit'])->name('edit');
+            Route::patch('{note}', [EnrollmentNoteController::class, 'update'])->name('update');
+            Route::delete('{note}', [EnrollmentNoteController::class, 'destroy'])->name('destroy');
+        });
 });
 
 // ============================================================
