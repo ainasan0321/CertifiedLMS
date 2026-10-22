@@ -24,7 +24,7 @@ class EnrollmentNoteTest extends TestCase
         $enrollment = Enrollment::factory()->create();
 
         // 追加
-        $response = $this->actingAs($admin)->post(route('enrollment.notes.store', $enrollment), [
+        $response = $this->actingAs($admin)->post(route('enrollments.notes.store', $enrollment), [
             'body' => '管理者からのテストメモ',
         ]);
         $response->assertRedirect();
@@ -59,7 +59,7 @@ class EnrollmentNoteTest extends TestCase
         ]);
 
         // 追加拒否
-        $this->actingAs($student)->post(route('enrollment.notes.store', $enrollment), ['body' => '拒否されるはず'])
+        $this->actingAs($student)->post(route('enrollments.notes.store', $enrollment), ['body' => '拒否されるはず'])
             ->assertStatus(403);
 
         // 編集画面拒否
