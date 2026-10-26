@@ -13,6 +13,7 @@ use App\Http\Controllers\ChatRoomController;
 use App\Http\Controllers\ContentSearchController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\EnrollmentGoalController;
 use App\Http\Controllers\EnrollmentManagementController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LearningHourTargetController;
@@ -24,6 +25,7 @@ use App\Http\Controllers\MockExamController;
 use App\Http\Controllers\MockExamQuestionController;
 use App\Http\Controllers\MockExamSessionController;
 use App\Http\Controllers\MockExamSessionMonitorController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PartController;
 use App\Http\Controllers\QuestionCategoryController;
 use App\Http\Controllers\QuizHistoryController;
@@ -77,6 +79,21 @@ Route::middleware('auth')->group(function () {
         ->name('enrollments.show');
 });
 
+// ============================================================
+// 認証ユーザー専用ルート 通知機能
+// ============================================================
+Route::middleware(['auth'])
+    ->prefix('notifications')
+    ->name('notifications.')
+    ->group(function () {
+        // 通知一覧
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        // 個別既読
+        Route::post('{notification}/read', [NotificationController::class, 'read'])->name('markAsRead');
+        // まとめて既読
+        Route::post('read-all', [NotificationController::class, 'markAllAsRead'])->name('markAllAsRead');
+    });
+    
 // ============================================================
 // 受講生専用ルート(受講中ステータスのみ通過、卒業ステータスはロック)
 // ============================================================
@@ -146,6 +163,30 @@ Route::middleware(['auth', 'role:student', 'active-learning'])
         Route::delete('enrollments/{enrollment}/hour-target', [LearningHourTargetController::class, 'destroy'])
             ->name('hourTarget.destroy');
     });
+
+// ============================================================
+// 受講生専用ルート 個人学習目標の管理(S-B-05)
+// ============================================================
+Route::middleware(['auth', 'role:student', 'active-learning'])->group(function () {
+    // 目標の追加
+    Route::post('enrollments/{enrollment}/goals', [EnrollmentGoalController::class, 'store'])
+        ->name('enrollments.goals.store');
+    // 目標の編集画面
+    Route::get('/enrollment-goals/{goal}/edit', [EnrollmentGoalController::class, 'edit'])
+        ->name('enrollment-goals.edit');
+    // 目標の更新処理
+    Route::patch('/enrollment-goals/{goal}', [EnrollmentGoalController::class, 'update'])
+        ->name('enrollment-goals.update');
+    // 目標の削除
+    Route::delete('/enrollment-goals/{goal}', [EnrollmentGoalController::class, 'destroy'])
+        ->name('enrollment-goals.destroy');
+    // 達成マーク
+    Route::post('/enrollment-goals/{goal}/achieve', [EnrollmentGoalController::class, 'markAchieved'])
+        ->name('enrollment-goals.markAchieved');
+    // 達成解除
+    Route::delete('/enrollment-goals/{goal}/achieve', [EnrollmentGoalController::class, 'unmarkAchieved'])
+        ->name('enrollment-goals.unmarkAchieved');
+});
 
 // ============================================================
 // admin 専用ルート

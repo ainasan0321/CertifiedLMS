@@ -12,6 +12,7 @@ use App\Http\Requests\Enrollment\UpdateExamDateRequest;
 use App\Models\Certification;
 use App\Models\Chapter;
 use App\Models\Enrollment;
+use App\Models\EnrollmentGoal;
 use App\Models\Part;
 use App\Services\Learning\ProgressSummary;
 use App\UseCases\Enrollment\DestroyAction;
@@ -99,7 +100,7 @@ class EnrollmentController extends Controller
     public function show(
         Enrollment $enrollment,
         ShowAction $action,
-    ): View {
+    ): \Illuminate\Http\Response {
         $this->authorize('view', $enrollment);
 
         $action($enrollment);
@@ -120,10 +121,32 @@ class EnrollmentController extends Controller
             ]);
         }
 
-        return view('enrollment.show', [
+        // ① 要件⑧のソート順（未達成が先、かつ期日順）で目標データを確実に取得
+        $goalsData = $enrollment->goals()
+            ->orderBy('achieved_at', 'asc')
+            ->orderBy('target_date', 'asc')
+            ->get();
+        $enrollment->setRelation('goals', $goalsData);
+
+        // ② 既存のビューを一度HTML文字列として裏側でレンダリング（描画）します
+        $html = view('enrollment.show', [
             'enrollment' => $enrollment,
             'progress' => $progress,
-        ]);
+            'goals' => $goalsData,
+        ])->render();
+
+        // ③ 提供されている目標フォームのHTMLを単独で生成
+        $goalFormHtml = view('enrollment-goal._form', [
+            'enrollment' => $enrollment,
+            'goals' => $goalsData,
+        ])->render();
+
+        // ④ 【動的インジェクション】受講情報のカード（左カラム）の定義リスト終了タグ </dl> の直後に目標フォームを滑り込ませます
+        $targetString = '</dl>';
+        $customHtml = str_replace($targetString, $targetString . '<div class="mt-6">' . $goalFormHtml . '</div>', $html);
+
+        // ⑤ 完全に結合されたカスタムHTMLをレスポンスとしてブラウザへ返却
+        return response($customHtml);
     }
 
     public function store(StoreRequest $request, StoreAction $action): RedirectResponse

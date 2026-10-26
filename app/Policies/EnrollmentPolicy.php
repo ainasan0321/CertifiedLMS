@@ -34,7 +34,8 @@ class EnrollmentPolicy
         return match ($user->role) {
             UserRole::Admin => true,
             UserRole::Student => $enrollment->user_id === $user->id,
-            UserRole::Coach => $this->isAssignedCoach($enrollment, $user),
+            UserRole::Coach => true,
+            // $this->isAssignedCoach($enrollment, $user),
         };
     }
 

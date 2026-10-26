@@ -20,6 +20,7 @@ use App\Models\Enrollment;
 use App\Models\Meeting;
 use App\Models\MeetingMemo;
 use App\Models\User;
+use App\Models\Notification;
 use App\Services\CoachMeetingLoadService;
 use App\Services\MeetingAvailabilityService;
 use App\Services\MeetingQuotaService;
@@ -172,6 +173,8 @@ class MeetingController extends Controller
         $topic = $request->validated('topic');
         $student = $enrollment->user;
 
+        $assignedCoach = null;
+
         $meeting = DB::transaction(function () use (
             $enrollment,
             $student,
@@ -181,6 +184,7 @@ class MeetingController extends Controller
             $coachLoadService,
             $quotaService,
             $consumeAction,
+            $assignedCoach,
         ) {
             if ($quotaService->remaining($student) < 1) {
                 throw new InsufficientMeetingQuotaException;
@@ -194,6 +198,7 @@ class MeetingController extends Controller
             }
 
             $coach = $coachLoadService->leastLoadedCoach($candidates);
+            $assignedCoach = $coach;
 
             try {
                 $meeting = Meeting::create([
@@ -215,6 +220,20 @@ class MeetingController extends Controller
 
             return $meeting->fresh();
         });
+
+        // ===========================================
+        // 【追記】通知基盤:面談予約確定時の通知発火（コーチ宛て）
+        // ===========================================
+        if (assignedCoach){
+            $formattedDate = $scheduledAt->isoFormat('YYYY年MM月DD日(ddd) HH:mm');
+            Notification::sendNotification(
+                $assignedCoach,
+                '定期面談の予約が確定しました',
+                'meeting_reserved',
+                "受講生（{$student->name}様）から、{$formattedDate} の面談予約が入りました。",
+                "/meetings"
+            );
+        }
 
         return redirect()
             ->route('meetings.show', $meeting)
@@ -249,6 +268,29 @@ class MeetingController extends Controller
                 'canceled_at' => now(),
             ]);
         });
+
+        // ===========================================
+        // 【追記】通知基盤:面談キャンセル時の通知発火（相手宛て）
+        // ===========================================
+        $targetUser::null;
+
+        if($actor->id === $meeting->student_id) {
+            // 受講生がキャンセルした場合：コーチ宛
+            $targetUser = $meeting->coach ?? User::find($meeting>coach_id);
+        }else {
+            // コーチがキャンセルした場合：受講生宛
+            $targetUser = $meeting->student ?? User::find($meeting->student_id);
+        }
+
+        if($targetUser) {
+            Notification::sendNotification(
+                $targetUser,
+                '面談がキャンセルされました',
+                'meeting_canceled',
+                "{$actor->name}様により、{$formattedDate} の面談予約がキャンセルされました。",
+                "/meetings"
+            );
+        }
 
         return redirect()
             ->route('meetings.show', $meeting)
