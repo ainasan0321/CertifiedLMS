@@ -53,7 +53,7 @@ class EnrollmentGoalController extends Controller
             'description' => $validated['description'],
         ]);
 
-        return redirect()->route('learning.enrollments.show', $goal->enrollment_id)
+        return redirect()->route('enrollments.show', $goal->enrollment_id)
             ->with('success', '目標を更新しました。');
     }
 
