@@ -109,5 +109,9 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('quiz.section.view', [SectionQuizPolicy::class, 'view']);
         Gate::define('quiz.weak-drill.view', [WeakDrillPolicy::class, 'view']);
         Gate::define('quiz.answer.create', [SectionQuestionAnswerPolicy::class, 'create']);
+
+        // 質問掲示板
+        Gate::policy(QaThread::class, QaThreadPolicy::class);
+        Gate::policy(QaReply::class, QaReplyPolicy::class);
     }
 }
