@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Mail;
 
 class NotificationSeeder extends Seeder
 {
@@ -14,6 +15,8 @@ class NotificationSeeder extends Seeder
      */
     public function run(): void
     {
+        Mail::fake();
+        
         $users = User::all();
 
         if ($users->isEmpty()) {
