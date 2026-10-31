@@ -60,8 +60,9 @@ class AnnouncementController extends Controller
 
         // 資格指定の場合
         if ($validated['target_type'] === AnnouncementTargetType::Certification->value) {
-            $query->whereHas('certifications', function ($q) use ($validated) {
-                $q->where('certifications.id', $validated['target_certification_id']);
+            $query->whereHas('enrollments', function ($q) use ($validated) {
+                $q->where('certification_id', $validated['target_certification_id'])
+                    ->where('status', 'learning');
             });
         }elseif ($validated['target_type'] === AnnouncementTargetType::User->value) {
             $query->where('id', $validated['target_user_id']);
