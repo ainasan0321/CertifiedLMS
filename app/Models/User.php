@@ -310,4 +310,12 @@ class User extends Authenticatable
     {
         return $query->whereIn('status', [UserStatus::InProgress, UserStatus::Graduated]);
     }
+
+    public function certifications(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Certification::class,
+            'certification_user',
+        )->withTimestamps();
+    }
 }

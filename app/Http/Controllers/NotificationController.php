@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -39,6 +38,30 @@ class NotificationController extends Controller
     }
 
     /**
+     * 受講生側の通知詳細画面の表示と既読化
+     */
+    public function show(Notification $notification): View
+    {
+        if ((string)$notification->notifiable_id !== (string)auth()->id()) {
+            abort(403, 'この通知を閲覧する権限がありません。');
+        }
+
+        $data = $notification->data;
+        $type = $data['notification_type'] ?? null;
+
+        if ($type !== 'admin_announcement') {
+            $this->authorize('update', $notification);
+        }
+
+        if (is_null($notification->read_at)) {
+            $notification->read_at = now();
+            $notification->save();
+        }
+
+        return view('notifications.show', compact('notification'));
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function read(Notification $notification): RedirectResponse
@@ -48,6 +71,10 @@ class NotificationController extends Controller
 
         if (is_null($notification->read_at)) {
             $notification->update(['read_at' => now()]);
+        }
+
+        if(($notification->data['notification_type'] ?? null) === 'admin_announcement') {
+            return redirect()->route('notifications.show', $notification);
         }
 
         return redirect($notification->link_url ?? route('notifications.index'));
