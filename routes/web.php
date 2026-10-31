@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Auth\OnboardingController;
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\BrowseController;
 use App\Http\Controllers\CertificationCatalogController;
 use App\Http\Controllers\CertificationCategoryController;
@@ -88,6 +89,7 @@ Route::middleware(['auth'])
     ->group(function () {
         // 通知一覧
         Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('{notification}', [NotificationController::class, 'show'])->name('show');
         // 個別既読
         Route::post('{notification}/read', [NotificationController::class, 'read'])->name('markAsRead');
         // まとめて既読
@@ -237,6 +239,26 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
         ->name('admin.enrollments.fail');
 
 });
+
+// ============================================================
+// 管理者専用ルート お知らせ配信(管理者) (S-B-08)
+// ============================================================
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+        Route::get('announcements/create', [AnnouncementController::class, 'create'])->name('announcements.create');
+        Route::post('announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
+        Route::get('announcements/{announcement}', [AnnouncementController::class, 'show'])->name('announcements.show');
+    });
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('announcements.management.')->group(function () {
+    Route::get('announcements-management', [AnnouncementController::class, 'index'])->name('index');
+    Route::get('announcements-management/create', [AnnouncementController::class, 'create'])->name('create');
+});
+
+
 
 // ============================================================
 // admin + コーチ共有ルート(資格マスタ閲覧 / 教材管理: コーチは担当資格のみ Policy + scope で絞り込み)
