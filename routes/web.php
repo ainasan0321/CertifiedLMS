@@ -20,6 +20,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LearningHourTargetController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MeetingQuotaHistoryController;
+use App\Http\Controllers\MeetingPackController;
 use App\Http\Controllers\MockExamAnswerController;
 use App\Http\Controllers\MockExamCatalogController;
 use App\Http\Controllers\MockExamController;
@@ -441,6 +442,24 @@ Route::middleware(['auth', 'role:student', 'active-learning'])
         Route::get('stats/{enrollment}', [QuizStatsController::class, 'index'])
             ->name('stats.index');
     });
+
+// ============================================================
+// 管理者専用ルート — S-B-02 面談パックのマスタ管理
+// ============================================================
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/meeting-packs', [MeetingPackController::class, 'index'])->name('meeting-packs.index');
+    Route::get('/meeting-packs/create', [MeetingPackController::class, 'create'])->name('meeting-packs.create');
+    Route::post('/meeting-packs', [MeetingPackController::class, 'store'])->name('meeting-packs.store');
+
+    Route::get('/meeting-packs/{plan}', [MeetingPackController::class, 'show'])->name('meeting-packs.show');
+    Route::get('/meeting-packs/{plan}/edit', [MeetingPackController::class, 'edit'])->name('meeting-packs.edit');
+    Route::patch('/meeting-packs/{plan}', [MeetingPackController::class, 'update'])->name('meeting-packs.update');
+    Route::delete('/meeting-packs/{plan}', [MeetingPackController::class, 'destroy'])->name('meeting-packs.destroy');
+
+    Route::post('/meeting-packs/{plan}/publish', [MeetingPackController::class, 'publish'])->name('meeting-packs.publish');
+    Route::post('/meeting-packs/{plan}/archive', [MeetingPackController::class, 'archive'])->name('meeting-packs.archive');
+    Route::post('/meeting-packs/{plan}/unarchive', [MeetingPackController::class, 'unarchive'])->name('meeting-packs.unarchive');
+});
 
 // ============================================================
 // 受講生専用ルート — 面談予約 (履歴一覧は資格横断 / 予約画面は default 資格に解決)
