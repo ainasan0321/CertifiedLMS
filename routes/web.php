@@ -29,6 +29,7 @@ use App\Http\Controllers\MockExamSessionController;
 use App\Http\Controllers\MockExamSessionMonitorController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PartController;
+use App\Http\Controllers\PlanController;
 use App\Http\Controllers\QuestionCategoryController;
 use App\Http\Controllers\QuizHistoryController;
 use App\Http\Controllers\QuizStatsController;
@@ -257,6 +258,23 @@ Route::middleware(['auth', 'role:admin'])
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('announcements.management.')->group(function () {
     Route::get('announcements-management', [AnnouncementController::class, 'index'])->name('index');
     Route::get('announcements-management/create', [AnnouncementController::class, 'create'])->name('create');
+});
+
+// ============================================================
+// 管理者専用ルート プランのマスタ管理 (S-B-03)
+// ============================================================
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('plans', [PlanController::class, 'index'])->name('plans.index');
+    Route::get('plans/create', [PlanController::class, 'create'])->name('plans.create');
+    Route::post('plans', [PlanController::class, 'store'])->name('plans.store');
+    Route::get('plans/{plan}', [PlanController::class, 'show'])->name('plans.show');
+    Route::get('plans/{plan}/edit', [PlanController::class, 'edit'])->name('plans.edit');
+    Route::put('plans/{plan}', [PlanController::class, 'update'])->name('plans.update');
+    Route::delete('plans/{plan}', [PlanController::class, 'destroy'])->name('plans.destroy');
+
+    Route::post('plans/{plan}/publish', [PlanController::class, 'publish'])->name('plans.publish');
+    Route::post('plans/{plan}/archive', [PlanController::class, 'archive'])->name('plans.archive');
+    Route::post('plans/{plan}/unarchive', [PlanController::class, 'unarchive'])->name('plans.unarchive');
 });
 
 
