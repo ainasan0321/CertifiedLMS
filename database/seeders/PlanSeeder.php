@@ -95,6 +95,19 @@ class PlanSeeder extends Seeder
             ->create();
 
         Plan::factory()
+            ->draft()
+            ->state([
+                'name' => '仲間と一緒に頑張ろうキャンペーンプラン（検討中）',
+                'description' => '友人と一緒に競い合って高めていくことを目的にしていきたいけど検討中。',
+                'duration_days' => 30,
+                'default_meeting_quota' => 2,
+                'sort_order' => 41,
+                'created_by_user_id' => $admin->id,
+                'updated_by_user_id' => $admin->id,
+            ])
+            ->create();
+
+        Plan::factory()
             ->archived()
             ->state([
                 'name' => '旧 2 ヶ月プラン 6 回',
