@@ -6,8 +6,10 @@ namespace Database\Seeders;
 
 use App\Enums\UserStatus;
 use App\Models\User;
+use App\Enums\UserRole;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * 開発用シードユーザー。
@@ -35,6 +37,22 @@ class UserSeeder extends Seeder
     {
         $this->createFixedAccounts();
         $this->createDemoStudents();
+        $this->createDemoCoachesAndAdmins();
+    }
+
+    public function getRandomAvatarPath(): ?string
+    {
+        $files = \Illuminate\Support\Facades\Storage::disk('public')->files('avatars');
+
+        $imageFiles = array_filter($files, function ($file) {
+            return in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'webp'], true);
+        });
+
+        if (! empty($imageFiles)) {
+            return $imageFiles[array_rand($imageFiles)];
+        }
+
+        return 'avatars/dummy.jpg';
     }
 
     /**
@@ -133,7 +151,19 @@ class UserSeeder extends Seeder
         User::factory()
             ->student()
             ->inProgress()
-            ->count(8)
+            ->count(5)
+            ->afterCreating(function (User $user) {
+                $user->update(['avatar_url' => $this->getRandomAvatarPath()]);
+            })
+            ->create();
+
+        User::factory()
+            ->student()
+            ->inProgress()
+            ->count(3)
+            ->afterCreating(function (User $user) {
+                $user->update(['avatar_url' => null]);
+            })
             ->create();
 
         // 卒業(graduated): 期限満了で自動卒業 or 修了証受領済み。プラン機能はロック、ログインのみ可。
@@ -141,6 +171,11 @@ class UserSeeder extends Seeder
             ->student()
             ->graduated()
             ->count(3)
+            ->afterCreating(function (User $user) {
+                $user->update([
+                    'avatar_url' => fake()->boolean() ? $this->getRandomAvatarPath() : null
+                ]);
+            })
             ->create([
                 'plan_expires_at' => now()->subDays(fake()->numberBetween(1, 90)),
             ]);
@@ -154,5 +189,29 @@ class UserSeeder extends Seeder
                 'deleted_at' => now()->subDays(fake()->numberBetween(1, 60)),
                 'email' => fn () => 'withdrawn_'.now()->timestamp.'_'.fake()->unique()->randomNumber(5).'@certify-lms.test',
             ]);
+    }
+
+    // コーチと管理者のアバター設定
+    public function createDemoCoachesAndAdmins(): void
+    {
+        User::factory()->coach()->count(2)->afterCreating(function (User $user) {
+                $user->update(['avatar_url' => $this->getRandomAvatarPath()]);
+            })
+            ->create(['status' => UserStatus::InProgress->value]);
+
+        User::factory()->coach()->count(1)->afterCreating(function (User $user) {
+                $user->update(['avatar_url' => null]);
+            })
+            ->create(['status' => UserStatus::InProgress->value]);
+
+        User::factory()->admin()->count(2)->afterCreating(function (User $user) {
+                $user->update(['avatar_url' => $this->getRandomAvatarPath()]);
+            })
+            ->create(['status' => UserStatus::InProgress->value]);
+
+        User::factory()->admin()->count(1)->afterCreating(function (User $user) {
+                $user->update(['avatar_url' => null]);
+            })
+            ->create(['status' => UserStatus::InProgress->value]);
     }
 }
