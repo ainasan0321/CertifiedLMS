@@ -318,4 +318,19 @@ class User extends Authenticatable
             'certification_user',
         )->withTimestamps();
     }
+
+    // アバター画像のフルURLを取得するアクセサ
+    protected function avatarUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: function ($value) {
+                if (! $value) {
+                    return null;
+                }
+
+                $url = \Illuminate\Support\Facades\Storage::disk('public')->url($value);
+                return $url . '?t=' . ($this->updated_at ? $this->updated_at->timestamp : time());
+            }
+        );
+    }
 }

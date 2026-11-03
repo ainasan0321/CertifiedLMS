@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Auth\OnboardingController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\settings\AvatarController;
 use App\Http\Controllers\BrowseController;
 use App\Http\Controllers\CertificationCatalogController;
 use App\Http\Controllers\CertificationCategoryController;
@@ -30,6 +31,8 @@ use App\Http\Controllers\MockExamSessionMonitorController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PartController;
 use App\Http\Controllers\PlanController;
+use App\Http\Controllers\settings\PasswordController;
+use App\Http\Controllers\settings\ProfileController;
 use App\Http\Controllers\QuestionCategoryController;
 use App\Http\Controllers\QuizHistoryController;
 use App\Http\Controllers\QuizStatsController;
@@ -81,6 +84,22 @@ Route::middleware('auth')->group(function () {
         ->withTrashed()
         ->name('enrollments.show');
 });
+
+// ============================================================
+// 全ロール共通ルート 設定・プロフィール(S-B-06)
+// ============================================================
+Route::middleware('auth')->group(function () {
+    // プロフィール表示・編集
+    Route::get('settings/profile', [ProfileController::class, 'edit'])->name('settings.profile.edit');
+    Route::patch('settings/profile', [ProfileController::class, 'update'])->name('settings.profile.update');
+    // アバター画像変更・削除
+    Route::post('settings/avatar', [AvatarController::class, 'store'])->name('settings.avatar.store');
+    Route::delete('settings/avatar', [AvatarController::class, 'destroy'])->name('settings.avatar.destroy');
+    // パスワード変更
+    Route::put('settings/password', [PasswordController::class, 'update'])->name('settings.password.update');
+});
+
+
 
 // ============================================================
 // 認証ユーザー専用ルート 通知機能
