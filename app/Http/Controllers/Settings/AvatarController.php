@@ -15,8 +15,10 @@ class AvatarController extends Controller
         // 現在ログインしているユーザーの情報を取得
         $user = $request->user();
 
-        if ($user->avatar_url){
-            Storage::disk('public')->delete($user->avatar_url);
+        $oldPath = $user->getRawOriginal('avatar_url');
+
+        if ($oldPath) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
         }
 
         $path = $request->file('avatar')->store('avatars', 'public');
