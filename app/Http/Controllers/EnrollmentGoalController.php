@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\EnrollmentGoal;
-use App\Models\Enrollment;
 use App\Http\Requests\Enrollment\EnrollmentGoalStoreRequest;
 use App\Http\Requests\Enrollment\EnrollmentGoalUpdateRequest;
+use App\Models\Enrollment;
+use App\Models\EnrollmentGoal;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 

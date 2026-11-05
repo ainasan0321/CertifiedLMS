@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
+
 use App\Models\Notification;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
@@ -42,7 +45,7 @@ class NotificationController extends Controller
      */
     public function show(Notification $notification): View
     {
-        if ((string)$notification->notifiable_id !== (string)auth()->id()) {
+        if ((string) $notification->notifiable_id !== (string) auth()->id()) {
             abort(403, 'この通知を閲覧する権限がありません。');
         }
 
@@ -73,7 +76,7 @@ class NotificationController extends Controller
             $notification->update(['read_at' => now()]);
         }
 
-        if(($notification->data['notification_type'] ?? null) === 'admin_announcement') {
+        if (($notification->data['notification_type'] ?? null) === 'admin_announcement') {
             return redirect()->route('notifications.show', $notification);
         }
 

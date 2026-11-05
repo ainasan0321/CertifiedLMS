@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Mail\NotificationCreatedMail;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -16,7 +18,7 @@ class NotificationSeeder extends Seeder
     public function run(): void
     {
         Mail::fake();
-        
+
         $users = User::all();
 
         if ($users->isEmpty()) {
@@ -27,11 +29,11 @@ class NotificationSeeder extends Seeder
         $readTarget = 15;
 
         $types = [[
-                'title' => '新着チャットメッセージ',
-                'type' => 'chat_message_received',
-                'body' => '担当者から新しいメッセージが届いています。',
-                'url' => '/chat-rooms',
-            ],
+            'title' => '新着チャットメッセージ',
+            'type' => 'chat_message_received',
+            'body' => '担当者から新しいメッセージが届いています。',
+            'url' => '/chat-rooms',
+        ],
             [
                 'title' => '質問に新しい回答が届きました',
                 'type' => 'qa_reply_received',
@@ -65,7 +67,7 @@ class NotificationSeeder extends Seeder
                     'notifiable_id' => $user->id,
                     'link_url' => $base['url'],
                     'data' => [
-                        'title' => $base['title'] . " (未読 #{$i})",
+                        'title' => $base['title']." (未読 #{$i})",
                         'notification_type' => $base['type'],
                         'body' => $base['body'],
                     ],
@@ -74,18 +76,18 @@ class NotificationSeeder extends Seeder
                 ]);
 
                 if ($user->email) {
-                    \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\NotificationCreatedMail($notification));
+                    Mail::to($user->email)->send(new NotificationCreatedMail($notification));
                 }
             }
 
             // 既読通知15件
-            for($j = 1; $j <= $readTarget; $j++) {
+            for ($j = 1; $j <= $readTarget; $j++) {
                 $totalCreated++;
                 $base = $types[$totalCreated % 4];
 
                 $notification = Notification::create([
                     'notifiable_type' => User::class,
-                    'notifiable_id'=> $user->id,
+                    'notifiable_id' => $user->id,
                     'link_url' => $base['url'],
                     'data' => [
                         'title' => $base['title'],

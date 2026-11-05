@@ -1,20 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
-use App\Models\QaThread;
-use App\Models\QaReply;
-use App\Models\Certification;
-use App\Models\User;
-use App\Models\Notification;
 use App\Enums\CertificationStatus;
 use App\Enums\QaThreadStatus;
-use App\Http\Requests\QaBoard\StoreQaThreadRequest;
 use App\Http\Requests\QaBoard\StoreQaReplyRequest;
-use App\Http\Requests\QaBoard\UpdateQaThreadRequest;
+use App\Http\Requests\QaBoard\StoreQaThreadRequest;
 use App\Http\Requests\QaBoard\UpdateQaReplyRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\QaBoard\UpdateQaThreadRequest;
+use App\Models\Certification;
+use App\Models\Notification;
+use App\Models\QaReply;
+use App\Models\QaThread;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class UserQaThreadController extends Controller
@@ -41,7 +43,7 @@ class UserQaThreadController extends Controller
         // 掲示板のスレッド一覧を効率的に取得
         $threads = QaThread::with(['user', 'certification'])
             // 要件「公開停止中の資格のスレッドは受講生・コーチには見えない」
-            ->whereHas('certification', function($query) {
+            ->whereHas('certification', function ($query) {
                 $query->published();
             })
             // コーチは担当資格のスレッドのみ閲覧できる
@@ -59,20 +61,20 @@ class UserQaThreadController extends Controller
                 });
             })
             // 資格での絞り込み
-            ->when($request->filled('certification_id'), function($query) use ($request) {
+            ->when($request->filled('certification_id'), function ($query) use ($request) {
                 $query->where('certification_id', $request->input('certification_id'));
             })
-            //解決状態での絞り込み('unresolved' => '未解決', 'resolved' => '解決済',)
+            // 解決状態での絞り込み('unresolved' => '未解決', 'resolved' => '解決済',)
             ->when($request->filled('status'), function ($query) use ($request) {
                 $status = $request->input('status');
-                if($status === 'resolved') {
+                if ($status === 'resolved') {
                     $query->where('status', QaThreadStatus::Resolved->value);
-                } elseif($status === 'unresolved') {
+                } elseif ($status === 'unresolved') {
                     $query->where('status', QaThreadStatus::Unresolved->value);
                 }
             })
-        ->latest() //新着順
-        ->paginate(20);
+            ->latest() // 新着順
+            ->paginate(20);
 
         return view('qa-thread.index', compact('filters', 'certifications', 'publishedStatus', 'threads'));
     }
@@ -92,10 +94,9 @@ class UserQaThreadController extends Controller
         $thread = QaThread::with(['user', 'certification', 'replies.user'])->findOrFail($thread);
 
         // アクセス制御：公開停止中は受講生・コーチには見せない
-        if ($thread->certification->status->value !== CertificationStatus::Published->value)
-            {
-                abort(404);
-            }
+        if ($thread->certification->status->value !== CertificationStatus::Published->value) {
+            abort(404);
+        }
 
         $viewer = auth()->user();
         $canReply = false;
@@ -103,10 +104,10 @@ class UserQaThreadController extends Controller
         if ($viewer) {
             if ($viewer->role->value === 'student') {
                 $canReply = true;
-            }elseif ($viewer->role->value === 'coach') {
+            } elseif ($viewer->role->value === 'coach') {
                 $canReply = $viewer->assignedCertifications()
-                ->where('certifications.id', $thread->certification_id)
-                ->exists();
+                    ->where('certifications.id', $thread->certification_id)
+                    ->exists();
             }
         }
 
@@ -143,7 +144,9 @@ class UserQaThreadController extends Controller
 
             if ($coaches->isEmpty()) {
                 $defaultCoach = User::where('role', 'coach')->first();
-                if ($defaultCoach) $coaches = collect([$defaultCoach]);
+                if ($defaultCoach) {
+                    $coaches = collect([$defaultCoach]);
+                }
             }
 
             foreach ($coaches as $targetCoach) {
@@ -155,12 +158,10 @@ class UserQaThreadController extends Controller
                     "/qa-board/{$thread->id}"
                 );
             }
-        }
-
-        elseif($sender->role->value === 'coach'){
+        } elseif ($sender->role->value === 'coach') {
             $targetStudent = $thread->user;
 
-            if($targetStudent && $targetStudent->id !== $sender->id){
+            if ($targetStudent && $targetStudent->id !== $sender->id) {
                 Notification::sendNotification(
                     $targetStudent,
                     '質問に新しい回答が届きました',
@@ -205,7 +206,7 @@ class UserQaThreadController extends Controller
             }
         }
 
-        foreach ($coaches as $targetCoach){
+        foreach ($coaches as $targetCoach) {
             Notification::sendNotification(
                 $targetCoach,
                 '質問スレッドに新しい返信が届きました。',
@@ -224,7 +225,7 @@ class UserQaThreadController extends Controller
         $thread = QaThread::findOrFail($thread);
 
         // 認可チェック
-        $this->authorize('update',$thread);
+        $this->authorize('update', $thread);
 
         // 選択肢用の資格一覧を取得
         $certifications = Certification::published()->get();
@@ -257,7 +258,7 @@ class UserQaThreadController extends Controller
 
     public function destroy(string $thread): RedirectResponse
     {
-        //編集の質問を取得
+        // 編集の質問を取得
         $thread = QaThread::findOrFail($thread);
 
         // 認可チェック
@@ -266,7 +267,7 @@ class UserQaThreadController extends Controller
         // 要件 「回答がすでに付いている質問は削除できない」というルールがあるか確認
         if ($thread->replies()->exists()) {
             return redirect()
-            ->route('qa-board.show', $thread->id)->with('error', 'すでに回答がついている質問は削除できません。');
+                ->route('qa-board.show', $thread->id)->with('error', 'すでに回答がついている質問は削除できません。');
         }
 
         // 質問を削除
@@ -346,7 +347,7 @@ class UserQaThreadController extends Controller
 
         // データベースに安全に保存
         $reply->update([
-            'body' =>$validated['body'],
+            'body' => $validated['body'],
         ]);
 
         return redirect()->route('qa-board.show', $thread)->with('success', '回答を更新しました。');

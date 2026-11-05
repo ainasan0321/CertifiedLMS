@@ -1,15 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use App\Enums\MeetingPackStatus;
-use App\Models\MeetingPack;
 use App\Http\Requests\MeetingPack\StoreMeetingPackRequest;
 use App\Http\Requests\MeetingPack\UpdateMeetingPackRequest;
-use Illuminate\View\View;
+use App\Models\MeetingPack;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class MeetingPackController extends Controller
 {
@@ -22,7 +23,7 @@ class MeetingPackController extends Controller
         $query = MeetingPack::query();
 
         if (filled($keyword)) {
-            $query->where('name', 'like', '%' . $keyword . '%');
+            $query->where('name', 'like', '%'.$keyword.'%');
         }
 
         if (filled($status)) {
@@ -30,7 +31,7 @@ class MeetingPackController extends Controller
         }
         $plans = $query->ordered()->paginate(20)->withQueryString();
 
-    return view('meeting-pack.management.index', compact('plans', 'keyword', 'status'));
+        return view('meeting-pack.management.index', compact('plans', 'keyword', 'status'));
     }
 
     public function create(): View
@@ -64,7 +65,7 @@ class MeetingPackController extends Controller
     public function edit(MeetingPack $plan)
     {
         $this->authorize('update', $plan);
-        
+
         return view('meeting-pack.management.edit', compact('plan'));
     }
 
@@ -127,5 +128,4 @@ class MeetingPackController extends Controller
         return redirect()->route('admin.meeting-packs.show', $plan)
             ->with('success', '面談パックを下書き状態に戻しました.');
     }
-
 }

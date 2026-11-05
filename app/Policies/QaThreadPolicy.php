@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\QaThread;
 use App\Models\User;
-use App\Enums\UserRole;
-use Illuminate\Auth\Access\Response;
 
 class QaThreadPolicy
 {
@@ -46,10 +47,10 @@ class QaThreadPolicy
      */
     public function delete(User $user, QaThread $qaThread): bool
     {
-        if($user->role->value === 'admin') {
+        if ($user->role->value === 'admin') {
             return true;
         }
-        
+
         return $user->id === $qaThread->user_id;
     }
 

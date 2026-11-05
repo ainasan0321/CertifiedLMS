@@ -1,11 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use App\Mail\NotificationCreatedMail;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Facades\Mail;
 
 class Notification extends Model
 {
@@ -43,7 +47,7 @@ class Notification extends Model
     public static function sendNotification(User $targetUser, string $title, string $type, $body, string $linkUrl): self
     {
         $notification = self::create([
-            'notifiable_type' => \App\Models\User::class,
+            'notifiable_type' => User::class,
             'notifiable_id' => $targetUser->id,
             'link_url' => $linkUrl,
             'data' => [
@@ -54,7 +58,7 @@ class Notification extends Model
         ]);
 
         if ($targetUser->email) {
-            \Illuminate\Support\Facades\Mail::to($targetUser->email)->send(new \App\Mail\NotificationCreatedMail($notification));
+            Mail::to($targetUser->email)->send(new NotificationCreatedMail($notification));
         }
 
         return $notification;

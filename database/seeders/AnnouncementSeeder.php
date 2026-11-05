@@ -1,18 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-use App\Enums\UserRole;
-use App\Enums\UserStatus;
 use App\Enums\AnnouncementTargetType;
-use App\Models\User;
-use App\Models\Certification;
+use App\Enums\UserRole;
 use App\Models\Announcement;
+use App\Models\Certification;
 use App\Models\Notification;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-
 
 class AnnouncementSeeder extends Seeder
 {
@@ -33,17 +32,17 @@ class AnnouncementSeeder extends Seeder
             return;
         }
 
-        for($i = 1; $i <= $countAllAnnouncements; $i++) {
+        for ($i = 1; $i <= $countAllAnnouncements; $i++) {
             $announcement = Announcement::create([
                 'id' => (string) Str::ulid(),
-                'title' => "【全体用】運営からの全体連絡です。",
-                'body' => "対象の方は、別途ご連絡をお願いいたします。",
+                'title' => '【全体用】運営からの全体連絡です。',
+                'body' => '対象の方は、別途ご連絡をお願いいたします。',
                 'target_type' => AnnouncementTargetType::AllStudents->value,
                 'dispatched_count' => $students->count(),
                 'dispatched_at' => now()->subDays($i + 3),
                 'created_by' => $admin->id,
             ]);
-            
+
             foreach ($students as $user) {
                 $this->createNotification($user->id, $announcement);
             }
@@ -57,20 +56,19 @@ class AnnouncementSeeder extends Seeder
                     $q->where('certification_id', $targetCertifications->id);
                 })->get();
 
-
             $announcement = Announcement::create([
-                    'id' => (string) Str::ulid(),
-                    'title' => "【資格者限定】「{$targetCertifications->name}」対象のお知らせ",
-                    'body' => "この資格を受講している方限定でお送りするおしらせです。",
-                    'target_type' => AnnouncementTargetType::Certification->value,
-                    'certification_id' => $targetCertifications->id,
-                    'dispatched_count' => $certStudents->count(),
-                    'dispatched_at' => now()->subDays($i + 2),
-                    'created_by' => $admin->id,
+                'id' => (string) Str::ulid(),
+                'title' => "【資格者限定】「{$targetCertifications->name}」対象のお知らせ",
+                'body' => 'この資格を受講している方限定でお送りするおしらせです。',
+                'target_type' => AnnouncementTargetType::Certification->value,
+                'certification_id' => $targetCertifications->id,
+                'dispatched_count' => $certStudents->count(),
+                'dispatched_at' => now()->subDays($i + 2),
+                'created_by' => $admin->id,
             ]);
 
             foreach ($certStudents as $user) {
-                    $this->createNotification($user->id, $announcement);
+                $this->createNotification($user->id, $announcement);
             }
         }
 
@@ -80,8 +78,8 @@ class AnnouncementSeeder extends Seeder
 
             $announcement = Announcement::create([
                 'id' => (string) Str::ulid(),
-                'title' => "【個別連絡】重要なお知らせ",
-                'body' => "特定の受講生宛の本文です。",
+                'title' => '【個別連絡】重要なお知らせ',
+                'body' => '特定の受講生宛の本文です。',
                 'target_type' => AnnouncementTargetType::User->value,
                 'user_id' => $randomStudent->id,
                 'dispatched_count' => 1,

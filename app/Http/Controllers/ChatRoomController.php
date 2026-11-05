@@ -10,8 +10,8 @@ use App\Http\Requests\Chat\IndexAsCoachRequest;
 use App\Http\Requests\Chat\IndexRequest;
 use App\Http\Requests\Chat\StoreMessageRequest;
 use App\Models\ChatRoom;
-use App\Models\User;
 use App\Models\Notification;
+use App\Models\User;
 use App\Services\ChatUnreadCountService;
 use App\UseCases\Chat\ShowAction;
 use App\UseCases\Chat\StoreMessageAction;
@@ -156,7 +156,7 @@ class ChatRoomController extends Controller
         $coaches = $room->enrollment->certification->coaches;
 
         // 受講生が送信した場合：紐づくコーチ全員に通知
-        if($user->role->value === 'student') {
+        if ($user->role->value === 'student') {
             foreach ($coaches as $targetCoach) {
                 Notification::sendNotification(
                     $targetCoach,
@@ -170,7 +170,7 @@ class ChatRoomController extends Controller
 
         // コーチが返信した場合：受講生への通知
         else {
-            if($student && student->id !== $user->id){
+            if ($student && student->id !== $user->id) {
                 Notification::sendNotification(
                     $student,
                     '新着チャットメッセージ',
@@ -180,7 +180,7 @@ class ChatRoomController extends Controller
                 );
             }
         }
-        
+
         return redirect()
             ->route('chat.show', $room)
             ->with('success', 'メッセージを送信しました。');

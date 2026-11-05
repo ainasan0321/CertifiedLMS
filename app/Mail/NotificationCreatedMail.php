@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Mail;
 
 use App\Models\Notification;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -33,7 +34,7 @@ class NotificationCreatedMail extends Mailable
 
         // これから届くメールの件名を設定
         return new Envelope(
-            subject: '[Certify LMS] <通知タイトル>' . $title,
+            subject: '[Certify LMS] <通知タイトル>'.$title,
         );
     }
 

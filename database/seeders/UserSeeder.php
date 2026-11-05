@@ -6,7 +6,6 @@ namespace Database\Seeders;
 
 use App\Enums\UserStatus;
 use App\Models\User;
-use App\Enums\UserRole;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -42,7 +41,7 @@ class UserSeeder extends Seeder
 
     public function getRandomAvatarPath(): ?string
     {
-        $files = \Illuminate\Support\Facades\Storage::disk('public')->files('avatars');
+        $files = Storage::disk('public')->files('avatars');
 
         $imageFiles = array_filter($files, function ($file) {
             return in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'webp'], true);
@@ -173,7 +172,7 @@ class UserSeeder extends Seeder
             ->count(3)
             ->afterCreating(function (User $user) {
                 $user->update([
-                    'avatar_url' => fake()->boolean() ? $this->getRandomAvatarPath() : null
+                    'avatar_url' => fake()->boolean() ? $this->getRandomAvatarPath() : null,
                 ]);
             })
             ->create([
@@ -195,23 +194,23 @@ class UserSeeder extends Seeder
     public function createDemoCoachesAndAdmins(): void
     {
         User::factory()->coach()->count(2)->afterCreating(function (User $user) {
-                $user->update(['avatar_url' => $this->getRandomAvatarPath()]);
-            })
+            $user->update(['avatar_url' => $this->getRandomAvatarPath()]);
+        })
             ->create(['status' => UserStatus::InProgress->value]);
 
         User::factory()->coach()->count(1)->afterCreating(function (User $user) {
-                $user->update(['avatar_url' => null]);
-            })
+            $user->update(['avatar_url' => null]);
+        })
             ->create(['status' => UserStatus::InProgress->value]);
 
         User::factory()->admin()->count(2)->afterCreating(function (User $user) {
-                $user->update(['avatar_url' => $this->getRandomAvatarPath()]);
-            })
+            $user->update(['avatar_url' => $this->getRandomAvatarPath()]);
+        })
             ->create(['status' => UserStatus::InProgress->value]);
 
         User::factory()->admin()->count(1)->afterCreating(function (User $user) {
-                $user->update(['avatar_url' => null]);
-            })
+            $user->update(['avatar_url' => null]);
+        })
             ->create(['status' => UserStatus::InProgress->value]);
     }
 }

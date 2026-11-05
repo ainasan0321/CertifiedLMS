@@ -1,15 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\QaThread;
-use App\Models\QaReply;
-use App\Models\User;
-use App\Models\Certification;
 use App\Enums\QaThreadStatus;
+use App\Models\Certification;
+use App\Models\QaReply;
+use App\Models\QaThread;
+use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
 
 class QaThreadSeeder extends Seeder
 {
@@ -27,7 +28,7 @@ class QaThreadSeeder extends Seeder
 
         $certifications = Certification::published()->get();
 
-        if (!$student || $certifications->isEmpty()) {
+        if (! $student || $certifications->isEmpty()) {
             return;
         }
 
@@ -36,19 +37,19 @@ class QaThreadSeeder extends Seeder
         $count = 1;
 
         // 未解決
-        foreach($certifications as $cert) {
+        foreach ($certifications as $cert) {
             $thread = QaThread::create([
                 'certification_id' => $cert->id,
                 'user_id' => $student->id,
                 'title' => "未解決の質問テスト (No.{$count})",
-                'body' => "未解決のスレッドです。",
+                'body' => '未解決のスレッドです。',
                 'status' => QaThreadStatus::Unresolved->value,
                 'created_at' => $now->copy()->subHours($count),
                 'updated_at' => $now->copy()->subHours($count),
             ]);
             $count++;
 
-            if($coach) {
+            if ($coach) {
                 QaReply::create([
                     'qa_thread_id' => $thread->id,
                     'user_id' => $coach->id,
@@ -62,7 +63,7 @@ class QaThreadSeeder extends Seeder
             'certification_id' => $cert->id,
             'user_id' => $student->id,
             'title' => "解決済の質問テスト (No.{$count})",
-            'body' => "解決済のスレッドです。",
+            'body' => '解決済のスレッドです。',
             'status' => QaThreadStatus::Resolved->value,
             'created_at' => $now->copy()->subDays($count),
             'updated_at' => $now->copy()->subDays($count),
@@ -76,7 +77,7 @@ class QaThreadSeeder extends Seeder
                 'certification_id' => $firstCert->id,
                 'user_id' => $otherStudent->id,
                 'title' => "【ページネーション確認用】追加の未解決質問 (増量No.{$i})",
-                'body' => "ページネーション（1ページ20件制限）の動作を確認するため、自動増量された質問です。回答数は0件です。",
+                'body' => 'ページネーション（1ページ20件制限）の動作を確認するため、自動増量された質問です。回答数は0件です。',
                 'status' => QaThreadStatus::Unresolved->value,
                 'created_at' => $now->copy()->subDays($count + $i), // さらに過去の日時にずらす（並び順の確認用）
                 'updated_at' => $now->copy()->subDays($count + $i),

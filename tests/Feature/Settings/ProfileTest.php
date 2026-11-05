@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Settings;
 
 use App\Enums\UserRole;
@@ -15,7 +17,6 @@ class ProfileTest extends TestCase
     /**
      * A basic feature test example.
      */
-
     use RefreshDatabase;
 
     public function test_student_can_update_profile(): void
@@ -33,11 +34,11 @@ class ProfileTest extends TestCase
                 'bio' => '新しい自己紹介',
             ]);
 
-         $response->assertRedirect(route('settings.profile.edit'));
+        $response->assertRedirect(route('settings.profile.edit'));
 
-         $response->assertSessionHas('success');
+        $response->assertSessionHas('success');
 
-         $this->assertDatabaseHas('users', [
+        $this->assertDatabaseHas('users', [
             'id' => $user->id,
             'name' => '新しい名前',
             'bio' => '新しい自己紹介',
@@ -121,7 +122,7 @@ class ProfileTest extends TestCase
             ]);
 
         $response->assertRedirect(route('settings.profile.edit'));
-        
+
         $response->assertSessionHasErrorsIn('updatePassword', ['current_password']);
     }
 }

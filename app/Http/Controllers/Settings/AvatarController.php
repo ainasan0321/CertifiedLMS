@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Settings;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\AvatarStoreRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class AvatarController extends Controller
@@ -18,7 +20,7 @@ class AvatarController extends Controller
         $oldPath = $user->getRawOriginal('avatar_url');
 
         if ($oldPath) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
+            Storage::disk('public')->delete($oldPath);
         }
 
         $path = $request->file('avatar')->store('avatars', 'public');
@@ -35,7 +37,7 @@ class AvatarController extends Controller
         // 現在ログインしているユーザーの情報を取得
         $user = $request->user();
 
-        if ($user->avatar_url){
+        if ($user->avatar_url) {
             Storage::disk('public')->delete($user->avatar_url);
         }
 

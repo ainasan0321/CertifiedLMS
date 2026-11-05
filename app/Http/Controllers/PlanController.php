@@ -1,16 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Models\Plan;
 use App\Enums\PlanStatus;
 use App\Http\Requests\Plan\PlanStoreRequest;
 use App\Http\Requests\Plan\PlanUpdateRequest;
+use App\Models\Plan;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
 
 class PlanController extends Controller
 {
@@ -22,14 +23,14 @@ class PlanController extends Controller
         $query = Plan::withCount('users');
 
         if (filled($keyword)) {
-            $query->where('name', 'like', '%' . $keyword . '%');
+            $query->where('name', 'like', '%'.$keyword.'%');
         }
 
         if (filled($status)) {
             $query->where('status', $status);
         }
 
-         $plans = $query->orderBy('sort_order', 'asc')
+        $plans = $query->orderBy('sort_order', 'asc')
             ->paginate(20)
             ->withQueryString();
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Announcement;
 
 use App\Enums\AnnouncementTargetType;
@@ -11,6 +13,7 @@ use App\Models\Enrollment;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class AnnouncementTest extends TestCase
@@ -18,44 +21,46 @@ class AnnouncementTest extends TestCase
     /**
      * A basic feature test example.
      */
-
     use RefreshDatabase;
 
     private User $admin;
+
     private User $student1;
+
     private User $student2;
+
     private Certification $certification;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->admin = \App\Models\User::factory()->create([
-            'role' => \App\Enums\UserRole::Admin->value,
-            'status' => \App\Enums\UserStatus::InProgress->value,
+        $this->admin = User::factory()->create([
+            'role' => UserRole::Admin->value,
+            'status' => UserStatus::InProgress->value,
         ]);
 
-        $this->student1 = \App\Models\User::factory()->create([
-            'role' => \App\Enums\UserRole::Student->value,
-            'status' => \App\Enums\UserStatus::InProgress->value,
+        $this->student1 = User::factory()->create([
+            'role' => UserRole::Student->value,
+            'status' => UserStatus::InProgress->value,
         ]);
 
-        $this->student2 = \App\Models\User::factory()->create([
-            'role' => \App\Enums\UserRole::Student->value,
-            'status' => \App\Enums\UserStatus::InProgress->value,
+        $this->student2 = User::factory()->create([
+            'role' => UserRole::Student->value,
+            'status' => UserStatus::InProgress->value,
         ]);
-        
-        $this->certification = \App\Models\Certification::factory()->create();
+
+        $this->certification = Certification::factory()->create();
 
         Enrollment::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'id' => (string) Str::ulid(),
             'user_id' => $this->student1->id,
             'certification_id' => $this->certification->id,
             'status' => 'learning',
         ]);
 
         if (method_exists($this->student1, 'assignedCertifications')) {
-            $this->student1->certifications()->attach($this->certification->id, ['id' => (string) \Illuminate\Support\Str::ulid()]);
+            $this->student1->certifications()->attach($this->certification->id, ['id' => (string) Str::ulid()]);
         }
     }
 
@@ -81,7 +86,7 @@ class AnnouncementTest extends TestCase
         $this->assertDatabaseHas('notifications', ['notifiable_id' => $this->student1->id]);
         $this->assertDatabaseHas('notifications', ['notifiable_id' => $this->student2->id]);
     }
-    
+
     // 【管理者】資格指定のお知らせ配信が正常に完了し、対象者のみに通知が届くこと
     public function test_admin_can_dispatch_announcement_to_specific_certification(): void
     {
@@ -155,7 +160,7 @@ class AnnouncementTest extends TestCase
     public function test_student_can_view_announcement_notification_and_it_becomes_read(): void
     {
         $announcement = Announcement::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'id' => (string) Str::ulid(),
             'title' => '運営からの重要なお知らせ',
             'body' => 'お知らせの全文内容です。',
             'target_type' => AnnouncementTargetType::AllStudents->value,
@@ -164,7 +169,7 @@ class AnnouncementTest extends TestCase
         ]);
 
         $notification = Notification::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'id' => (string) Str::ulid(),
             'notifiable_type' => User::class,
             'notifiable_id' => $this->student1->id,
             'data' => [
@@ -200,7 +205,7 @@ class AnnouncementTest extends TestCase
     public function test_student_cannot_view_others_notification(): void
     {
         $announcement = Announcement::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'id' => (string) Str::ulid(),
             'title' => '全体タイトル',
             'body' => '全体本文',
             'target_type' => AnnouncementTargetType::AllStudents->value,
@@ -210,7 +215,7 @@ class AnnouncementTest extends TestCase
 
         // student2 宛ての通知を作成
         $otherNotification = Notification::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'id' => (string) Str::ulid(),
             'notifiable_type' => User::class,
             'notifiable_id' => $this->student2->id,
             'data' => [

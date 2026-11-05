@@ -1,14 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Http\QaBoard;
 
-use App\Models\User;
-use App\Models\QaThread;
-use App\Enums\UserRole;
-use App\Models\Enrollment;
 use App\Models\Certification;
+use App\Models\Enrollment;
+use App\Models\QaThread;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class QaThreadTest extends TestCase
@@ -16,7 +16,6 @@ class QaThreadTest extends TestCase
     /**
      * A basic feature test example.
      */
-
     use RefreshDatabase;
 
     public function test_authenticated_user_can_create_qa_thread(): void
@@ -33,7 +32,7 @@ class QaThreadTest extends TestCase
 
         $response->assertRedirect();
         $this->assertDatabaseHas('qa_threads', [
-            'title' => 'Laravelのルーティングについて質問です'
+            'title' => 'Laravelのルーティングについて質問です',
         ]);
     }
 
@@ -49,7 +48,7 @@ class QaThreadTest extends TestCase
     {
         $author = User::factory()->student()->create();
         $certification = Certification::factory()->create();
-        
+
         // 💡 投稿者本人に紐付けて質問を作成
         $thread = QaThread::create([
             'certification_id' => $certification->id,
@@ -71,7 +70,7 @@ class QaThreadTest extends TestCase
         // 3. 削除の成功
         $this->actingAs($author)->delete(route('qa-board.destroy', $thread))
             ->assertRedirect();
-            
+
         $this->assertDatabaseMissing('qa_threads', ['id' => $thread->id]);
     }
 

@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Notifications;
 
+use App\Models\Announcement;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Models\Announcement;
 
 class BroadcastAnnouncement extends Notification
 {
@@ -38,11 +39,11 @@ class BroadcastAnnouncement extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-                    ->subject($this->announcement->title)
-                    ->greeting($notifiable->name . ' 様')
-                    ->line('お知らせです。')
-                    ->line($this->announcement->body)
-                    ->action('詳細', url('/notifications'. $this->id));
+            ->subject($this->announcement->title)
+            ->greeting($notifiable->name.' 様')
+            ->line('お知らせです。')
+            ->line($this->announcement->body)
+            ->action('詳細', url('/notifications'.$this->id));
     }
 
     /**

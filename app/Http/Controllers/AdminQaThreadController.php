@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
-use App\Models\QaThread;
-use App\Models\QaReply;
-use App\Models\Certification;
 use App\Enums\QaThreadStatus;
-use Illuminate\Http\Request;
+use App\Models\Certification;
+use App\Models\QaReply;
+use App\Models\QaThread;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AdminQaThreadController extends Controller
@@ -37,16 +39,16 @@ class AdminQaThreadController extends Controller
             })
 
             // 資格での絞り込み
-            ->when($request->filled('certification_id'), function($query) use ($request) {
+            ->when($request->filled('certification_id'), function ($query) use ($request) {
                 $query->where('certification_id', $request->input('certification_id'));
             })
 
-            //解決状態での絞り込み('unresolved' => '未解決', 'resolved' => '解決済',)
+            // 解決状態での絞り込み('unresolved' => '未解決', 'resolved' => '解決済',)
             ->when($request->filled('status'), function ($query) use ($request) {
                 $status = $request->input('status');
-                if($status === 'resolved') {
+                if ($status === 'resolved') {
                     $query->where('status', QaThreadStatus::Resolved->value);
-                } elseif($status === 'unresolved') {
+                } elseif ($status === 'unresolved') {
                     $query->where('status', QaThreadStatus::Unresolved->value);
                 }
             })

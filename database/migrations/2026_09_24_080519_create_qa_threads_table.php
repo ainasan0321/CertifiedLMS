@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Enums\QaThreadStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\QaThreadStatus;
 
 return new class extends Migration
 {

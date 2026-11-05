@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
-use App\Models\User;
-use App\Models\QaThread;
 use App\Models\QaReply;
-use Illuminate\Auth\Access\Response;
+use App\Models\QaThread;
+use App\Models\User;
 
 class QaReplyPolicy
 {
@@ -30,19 +31,16 @@ class QaReplyPolicy
      */
     public function create(User $user, ?QaThread $qaThread = null): bool
     {
-        if(!$qaThread)
-            {
-                return false;
-            }
+        if (! $qaThread) {
+            return false;
+        }
 
-        if ($user->role->value === 'student')
-            {
-                return true;
-            }
-        if ($user->role->value === 'coach')
-            {
-                return true;
-            }
+        if ($user->role->value === 'student') {
+            return true;
+        }
+        if ($user->role->value === 'coach') {
+            return true;
+        }
 
         return false;
     }
@@ -60,10 +58,10 @@ class QaReplyPolicy
      */
     public function delete(User $user, QaReply $qaReply): bool
     {
-        if($user->role->value === 'admin') {
+        if ($user->role->value === 'admin') {
             return true;
         }
-        
+
         return $user->id === $qaReply->user_id;
     }
 

@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Http\Plan;
 
 use App\Enums\PlanStatus;
-use App\Enums\UserRole;
 use App\Models\Plan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -17,7 +18,9 @@ class PlanTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private User $student;
+
     private User $coach;
 
     protected function setUp(): void

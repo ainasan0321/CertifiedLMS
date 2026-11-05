@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use App\Enums\QaThreadStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Enums\QaThreadStatus;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -31,7 +33,7 @@ class QaThread extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function replies() :HasMany
+    public function replies(): HasMany
     {
         return $this->hasMany(QaReply::class);
     }
@@ -40,5 +42,4 @@ class QaThread extends Model
     {
         return $this->belongsTo(Certification::class);
     }
-    
 }
