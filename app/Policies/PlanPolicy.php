@@ -1,18 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
 use App\Models\Plan;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class PlanPolicy
 {
     public function before(User $user, string $ability): ?bool
     {
-        if ($user->role == 'admin' ) {
+        if ($user->role == 'admin') {
             return false;
         }
+
         return null;
     }
 

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Auth\OnboardingController;
+use App\Http\Controllers\AdminQaThreadController;
 use App\Http\Controllers\AnnouncementController;
-use App\Http\Controllers\settings\AvatarController;
+use App\Http\Controllers\Auth\OnboardingController;
 use App\Http\Controllers\BrowseController;
 use App\Http\Controllers\CertificationCatalogController;
 use App\Http\Controllers\CertificationCategoryController;
@@ -20,8 +20,8 @@ use App\Http\Controllers\EnrollmentManagementController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LearningHourTargetController;
 use App\Http\Controllers\MeetingController;
-use App\Http\Controllers\MeetingQuotaHistoryController;
 use App\Http\Controllers\MeetingPackController;
+use App\Http\Controllers\MeetingQuotaHistoryController;
 use App\Http\Controllers\MockExamAnswerController;
 use App\Http\Controllers\MockExamCatalogController;
 use App\Http\Controllers\MockExamController;
@@ -31,13 +31,9 @@ use App\Http\Controllers\MockExamSessionMonitorController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PartController;
 use App\Http\Controllers\PlanController;
-use App\Http\Controllers\settings\PasswordController;
-use App\Http\Controllers\settings\ProfileController;
 use App\Http\Controllers\QuestionCategoryController;
 use App\Http\Controllers\QuizHistoryController;
 use App\Http\Controllers\QuizStatsController;
-use App\Http\Controllers\UserQaThreadController;
-use App\Http\Controllers\AdminQaThreadController;
 use App\Http\Controllers\ReceiveCertificateController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SectionImageController;
@@ -47,8 +43,12 @@ use App\Http\Controllers\SectionQuestionController;
 use App\Http\Controllers\SectionQuizController;
 use App\Http\Controllers\SectionQuizResultController;
 use App\Http\Controllers\Settings\AvailabilityController as SettingsAvailabilityController;
+use App\Http\Controllers\settings\AvatarController;
+use App\Http\Controllers\settings\PasswordController;
+use App\Http\Controllers\settings\ProfileController;
 use App\Http\Controllers\Settings\SettingsDefaultEnrollmentController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserQaThreadController;
 use App\Http\Controllers\WeakDrillController;
 use App\Http\Controllers\WeakDrillResultController;
 use Illuminate\Support\Facades\Route;
@@ -99,8 +99,6 @@ Route::middleware('auth')->group(function () {
     Route::put('settings/password', [PasswordController::class, 'update'])->name('settings.password.update');
 });
 
-
-
 // ============================================================
 // 認証ユーザー専用ルート 通知機能
 // ============================================================
@@ -116,7 +114,7 @@ Route::middleware(['auth'])
         // まとめて既読
         Route::post('read-all', [NotificationController::class, 'markAllAsRead'])->name('markAllAsRead');
     });
-    
+
 // ============================================================
 // 受講生専用ルート(受講中ステータスのみ通過、卒業ステータスはロック)
 // ============================================================
@@ -295,8 +293,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('plans/{plan}/archive', [PlanController::class, 'archive'])->name('plans.archive');
     Route::post('plans/{plan}/unarchive', [PlanController::class, 'unarchive'])->name('plans.unarchive');
 });
-
-
 
 // ============================================================
 // admin + コーチ共有ルート(資格マスタ閲覧 / 教材管理: コーチは担当資格のみ Policy + scope で絞り込み)
@@ -605,7 +601,7 @@ Route::middleware(['auth', 'role:student', 'active-learning'])
     ->name('qa-board.')
     ->group(function () {
         // スレッド新規投稿(作成画面表示 / 保存)
-        Route::get('create',[UserQaThreadController::class, 'create'])->name('create');
+        Route::get('create', [UserQaThreadController::class, 'create'])->name('create');
         Route::post('/', [UserQaThreadController::class, 'store'])->name('store');
 
         // 投稿者本人のみ[Policyで機能でガード]

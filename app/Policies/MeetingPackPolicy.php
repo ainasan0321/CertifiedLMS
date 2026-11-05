@@ -1,11 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
-use App\Models\User;
-use App\Models\MeetingPack;
 use App\Enums\MeetingPackStatus;
-use App\Enums\UserRole;
+use App\Models\MeetingPack;
 
 class MeetingPackPolicy
 {
@@ -39,7 +39,7 @@ class MeetingPackPolicy
         // 下書き(Draft)からのみ公開可能
         return $plan->status === MeetingPackStatus::Draft;
     }
-    
+
     public function archive($user, MeetingPack $plan): bool
     {
         // 公開中(Published)からのみアーカイブ可能

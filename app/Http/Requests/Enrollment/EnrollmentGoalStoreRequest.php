@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Enrollment;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class EnrollmentGoalStoreRequest extends FormRequest
@@ -17,7 +20,7 @@ class EnrollmentGoalStoreRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -34,7 +37,7 @@ class EnrollmentGoalStoreRequest extends FormRequest
             'title.required' => 'タイトルは必須です。',
             'title.max' => 'タイトルは100文字以内で入力してください。',
             'target_date.date' => '目標期日は日付を入力してください。',
-            'description.max' => '詳細は1000文字以内で入力してください。'
+            'description.max' => '詳細は1000文字以内で入力してください。',
         ];
     }
 

@@ -19,8 +19,8 @@ use App\Models\Certification;
 use App\Models\Enrollment;
 use App\Models\Meeting;
 use App\Models\MeetingMemo;
-use App\Models\User;
 use App\Models\Notification;
+use App\Models\User;
 use App\Services\CoachMeetingLoadService;
 use App\Services\MeetingAvailabilityService;
 use App\Services\MeetingQuotaService;
@@ -224,14 +224,14 @@ class MeetingController extends Controller
         // ===========================================
         // 【追記】通知基盤:面談予約確定時の通知発火（コーチ宛て）
         // ===========================================
-        if (assignedCoach){
+        if (assignedCoach) {
             $formattedDate = $scheduledAt->isoFormat('YYYY年MM月DD日(ddd) HH:mm');
             Notification::sendNotification(
                 $assignedCoach,
                 '定期面談の予約が確定しました',
                 'meeting_reserved',
                 "受講生（{$student->name}様）から、{$formattedDate} の面談予約が入りました。",
-                "/meetings"
+                '/meetings'
             );
         }
 
@@ -274,21 +274,21 @@ class MeetingController extends Controller
         // ===========================================
         $targetUser::null;
 
-        if($actor->id === $meeting->student_id) {
+        if ($actor->id === $meeting->student_id) {
             // 受講生がキャンセルした場合：コーチ宛
-            $targetUser = $meeting->coach ?? User::find($meeting>coach_id);
-        }else {
+            $targetUser = $meeting->coach ?? User::find($meeting > coach_id);
+        } else {
             // コーチがキャンセルした場合：受講生宛
             $targetUser = $meeting->student ?? User::find($meeting->student_id);
         }
 
-        if($targetUser) {
+        if ($targetUser) {
             Notification::sendNotification(
                 $targetUser,
                 '面談がキャンセルされました',
                 'meeting_canceled',
                 "{$actor->name}様により、{$formattedDate} の面談予約がキャンセルされました。",
-                "/meetings"
+                '/meetings'
             );
         }
 

@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use App\Enums\AnnouncementTargetType;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Enums\AnnouncementTargetType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Announcement extends Model
@@ -13,6 +15,7 @@ class Announcement extends Model
     use HasFactory, HasUlids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -48,5 +51,4 @@ class Announcement extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
-
 }

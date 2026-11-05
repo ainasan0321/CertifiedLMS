@@ -9,6 +9,7 @@ use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Notifications\Auth\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * プラン受講中のユーザーを表す Model。
@@ -320,16 +322,17 @@ class User extends Authenticatable
     }
 
     // アバター画像のフルURLを取得するアクセサ
-    protected function avatarUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    protected function avatarUrl(): Attribute
     {
-        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+        return Attribute::make(
             get: function ($value) {
                 if (! $value) {
                     return null;
                 }
 
-                $url = \Illuminate\Support\Facades\Storage::disk('public')->url($value);
-                return $url . '?t=' . ($this->updated_at ? $this->updated_at->timestamp : time());
+                $url = Storage::disk('public')->url($value);
+
+                return $url.'?t='.($this->updated_at ? $this->updated_at->timestamp : time());
             }
         );
     }

@@ -1,20 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Enums\AnnouncementTargetType;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Announcement\StoreAnnouncementRequest;
 use App\Models\Announcement;
-use App\Models\User;
 use App\Models\Certification;
 use App\Models\Notification;
-use App\Notifications\BroadcastAnnouncement;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AnnouncementController extends Controller
@@ -34,7 +34,7 @@ class AnnouncementController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(): view
+    public function create(): View
     {
         $allCertifications = Certification::orderBy('name')->get();
 
@@ -64,15 +64,15 @@ class AnnouncementController extends Controller
                 $q->where('certification_id', $validated['target_certification_id'])
                     ->where('status', 'learning');
             });
-        }elseif ($validated['target_type'] === AnnouncementTargetType::User->value) {
+        } elseif ($validated['target_type'] === AnnouncementTargetType::User->value) {
             $query->where('id', $validated['target_user_id']);
         }
 
         $targets = $query->get();
-        
-        if($targets->isEmpty()) {
+
+        if ($targets->isEmpty()) {
             return redirect()->back()->withInput()->withErrors([
-                'target_type' => '該当する受講生が存在しません。'
+                'target_type' => '該当する受講生が存在しません。',
             ]);
         }
 
@@ -90,7 +90,7 @@ class AnnouncementController extends Controller
 
             foreach ($targets as $user) {
                 Notification::create([
-                    'id' => (string) \Illuminate\Support\Str::ulid(),
+                    'id' => (string) Str::ulid(),
                     'notifiable_type' => User::class,
                     'notifiable_id' => $user->id,
                     'data' => [
@@ -116,5 +116,4 @@ class AnnouncementController extends Controller
 
         return view('announcement.management.show', compact('announcement'));
     }
-
 }

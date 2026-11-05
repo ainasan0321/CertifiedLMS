@@ -1,11 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
-use App\Models\Notification;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Notifications\DatabaseNotification;
 
 class NotificationPolicy
 {
@@ -14,8 +13,6 @@ class NotificationPolicy
      */
     public function update(User $user, $notification): bool
     {
-        return (string)$notification->notifiable_id === (string)$user->id;
+        return (string) $notification->notifiable_id === (string) $user->id;
     }
-
-
 }

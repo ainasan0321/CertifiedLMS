@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Http\Enrollment;
 
-use App\Models\User;
-use App\Models\Enrollment;
 use App\Models\Certification;
+use App\Models\Enrollment;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class EnrollmentGoalTest extends TestCase
@@ -14,14 +15,13 @@ class EnrollmentGoalTest extends TestCase
     /**
      * A basic feature test example.
      */
-
     use RefreshDatabase;
 
     public function test_student_can_manage_their_own_goals(): void
     {
         $student = User::factory()->student()->create();
         $certification = Certification::factory()->create();
-        
+
         $enrollment = Enrollment::factory()->create([
             'user_id' => $student->id,
             'certification_id' => $certification->id,
@@ -33,7 +33,7 @@ class EnrollmentGoalTest extends TestCase
             'target_date' => now()->addDays(7)->format('Y-m-d'),
         ]);
         $response->assertRedirect();
-        
+
         $this->assertDatabaseHas('enrollment_goals', ['title' => '今週の学習目標']);
     }
 }

@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
-use App\Models\EnrollmentGoal;
 use App\Models\Enrollment;
+use App\Models\EnrollmentGoal;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class EnrollmentGoalPolicy
 {
@@ -33,7 +34,7 @@ class EnrollmentGoalPolicy
         if ($enrollment instanceof Enrollment) {
             return $user->id === $enrollment->user_id;
         }
-        
+
         return false;
     }
 

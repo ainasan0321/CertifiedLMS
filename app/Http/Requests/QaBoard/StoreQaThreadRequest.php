@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\QaBoard;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreQaThreadRequest extends FormRequest
 {
@@ -19,7 +20,7 @@ class StoreQaThreadRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -44,12 +45,11 @@ class StoreQaThreadRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $title = $this->input('title') ?? '';
-        $body  = $this->input('body') ?? '';
+        $body = $this->input('body') ?? '';
 
         $this->merge([
             'title' => preg_replace('/^[[:space:]]+|[[:space:]]+$/u', '', $title),
-            'body'  => preg_replace('/^[[:space:]]+|[[:space:]]+$/u', '', $body),
+            'body' => preg_replace('/^[[:space:]]+|[[:space:]]+$/u', '', $body),
         ]);
     }
-
 }
