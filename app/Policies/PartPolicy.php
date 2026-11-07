@@ -23,7 +23,7 @@ class PartPolicy
     {
         return match ($auth->role) {
             UserRole::Admin => true,
-            UserRole::Coach => false,
+            UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $certification->id)->exists(), // 変更
             default => false,
         };
     }
@@ -32,7 +32,7 @@ class PartPolicy
     {
         return match ($auth->role) {
             UserRole::Admin => true,
-            UserRole::Coach => false,
+            UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $part->certification_id)->exists(), // 変更
             default => $part->status === ContentStatus::Published,
         };
     }
@@ -71,7 +71,8 @@ class PartPolicy
     {
         return match ($auth->role) {
             UserRole::Admin => true,
-            UserRole::Coach => false,
+            // 対象の資格が担当資格に含まれているか判定する
+            UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $certification->id)->exists(),
             default => false,
         };
     }

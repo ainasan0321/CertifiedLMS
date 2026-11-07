@@ -24,7 +24,8 @@ class SectionPolicy
     {
         return match ($auth->role) {
             UserRole::Admin => true,
-            UserRole::Coach => false,
+            // 一覧表示: 親の Chapter -> Part が担当資格に属しているか判定
+            UserRole::Coach => $auth->assignCertifications()->where('certifications.id', $chapter->part->certification_id)->exists(), // 変更
             default => false,
         };
     }
@@ -36,7 +37,7 @@ class SectionPolicy
         }
 
         if ($auth->role === UserRole::Coach) {
-            return false;
+            return $auth->assignedCertifications()->where('certifications.id', $section->chapter->part->certification_id)->exists();
         }
 
         return $section->status === ContentStatus::Published
@@ -83,7 +84,7 @@ class SectionPolicy
     {
         return match ($auth->role) {
             UserRole::Admin => true,
-            UserRole::Coach => false,
+            UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $certification->id)->exists(),
             default => false,
         };
     }

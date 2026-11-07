@@ -42,7 +42,8 @@ class QuestionCategoryPolicy
     {
         return match ($auth->role) {
             UserRole::Admin => true,
-            UserRole::Coach => false,
+            // 対象の資格が担当資格に含まれているか判定する
+            UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $certification->id)->exists(),
             default => false,
         };
     }
