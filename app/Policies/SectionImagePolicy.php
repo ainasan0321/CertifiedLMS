@@ -29,7 +29,7 @@ class SectionImagePolicy
     {
         return match ($auth->role) {
             UserRole::Admin => true,
-            UserRole::Coach => false,
+            UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $certification->id)->exists(),
             default => false,
         };
     }

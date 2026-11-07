@@ -344,7 +344,7 @@ Route::middleware(['auth', 'role:admin,coach'])->prefix('admin')->group(function
         ->name('admin.sections.images.store');
 
     // 教材管理 — Section 内画像の削除
-    Route::delete('section-images/{image}', [SectionImageController::class, 'destroy'])
+    Route::delete('section-images/{image:id}', [SectionImageController::class, 'destroy'])
         ->name('admin.section-images.destroy');
 
     // 演習管理 — 出題分野マスタ

@@ -24,7 +24,8 @@ class ChapterPolicy
     {
         return match ($auth->role) {
             UserRole::Admin => true,
-            UserRole::Coach => false,
+            // 一覧表示: 親の Part が担当資格に属しているか判定
+            UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $part->certification_id)->exists(), // 変更
             default => false,
         };
     }
@@ -33,7 +34,8 @@ class ChapterPolicy
     {
         return match ($auth->role) {
             UserRole::Admin => true,
-            UserRole::Coach => false,
+            // 詳細表示: Chapter の親の Part が担当資格に属しているか判定
+            UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $chapter->part->certification_id)->exists(), // 変更
             default => $chapter->status === ContentStatus::Published,
         };
     }
@@ -72,7 +74,8 @@ class ChapterPolicy
     {
         return match ($auth->role) {
             UserRole::Admin => true,
-            UserRole::Coach => false,
+            // 担当資格かチェックする
+            UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $certification->id)->exists(),
             default => false,
         };
     }
