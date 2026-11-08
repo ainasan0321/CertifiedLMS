@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Enums\UserStatus;
+use App\Models\Certification;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -116,8 +117,8 @@ class UserSeeder extends Seeder
             ])
             ->create();
 
-        $certification = \App\Models\Certification::first();
-        
+        $certification = Certification::first();
+
         if ($certification) {
             $student->certifications()->attach($certification->id);
         }
