@@ -53,7 +53,7 @@ class CertificationController extends Controller
 
     public function show(Certification $certification, ShowAction $action): View
     {
-        $this->authorize('view', $certification);
+        abort_unless(Gate::allows('view', $certification), 404);
 
         $coachCandidates = User::query()
             ->where('role', UserRole::Coach->value)

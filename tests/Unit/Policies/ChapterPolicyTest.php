@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Policies;
 
+use App\Enums\CertificationStatus;
 use App\Models\Certification;
 use App\Models\CertificationCoachAssignment;
 use App\Models\Chapter;
@@ -64,8 +65,21 @@ class ChapterPolicyTest extends TestCase
     public function test_student_can_view_only_published_chapter(): void
     {
         $student = User::factory()->student()->create();
-        $publishedChapter = Chapter::factory()->published()->create();
-        $draftChapter = Chapter::factory()->draft()->create();
+        $publishedCertification = Certification::factory()->create([
+            'status' => CertificationStatus::Published,
+        ]);
+
+        $publishedPart = Part::factory()->published()->create([
+            'certification_id' => $publishedCertification->id,
+        ]);
+
+        $publishedChapter = Chapter::factory()->published()->create([
+            'part_id' => $publishedPart->id,
+        ]);
+        $draftChapter = Chapter::factory()->draft()->create([
+            'part_id' => $publishedPart->id,
+        ]);
+
         $policy = new ChapterPolicy;
 
         $this->assertTrue($policy->view($student, $publishedChapter));

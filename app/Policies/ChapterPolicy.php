@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\CertificationStatus;
 use App\Enums\ContentStatus;
 use App\Enums\UserRole;
 use App\Models\Certification;
@@ -36,7 +37,8 @@ class ChapterPolicy
             UserRole::Admin => true,
             // 詳細表示: Chapter の親の Part が担当資格に属しているか判定
             UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $chapter->part->certification_id)->exists(), // 変更
-            default => $chapter->status === ContentStatus::Published,
+            default => $chapter->status === ContentStatus::Published
+                && $chapter->part->certification->status === CertificationStatus::Published, // 資格も公開中である
         };
     }
 

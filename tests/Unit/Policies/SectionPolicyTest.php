@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Policies;
 
+use App\Enums\CertificationStatus;
 use App\Models\Certification;
 use App\Models\CertificationCoachAssignment;
 use App\Models\Chapter;
@@ -37,13 +38,39 @@ class SectionPolicyTest extends TestCase
     public function test_student_view_requires_full_published_chain(): void
     {
         $student = User::factory()->student()->create();
-        $publishedPart = Part::factory()->published()->create();
-        $publishedChapter = Chapter::factory()->for($publishedPart)->published()->create();
-        $publishedSection = Section::factory()->for($publishedChapter)->published()->create();
 
-        $draftPart = Part::factory()->draft()->create();
-        $draftChapter = Chapter::factory()->for($draftPart)->published()->create();
-        $sectionUnderDraftPart = Section::factory()->for($draftChapter)->published()->create();
+        $publishedCertification = Certification::factory()->create([
+            'status' => CertificationStatus::Published,
+        ]);
+
+        $publishedPart = Part::factory()->published()->create([
+            'certification_id' => $publishedCertification->id,
+        ]);
+
+        $publishedChapter = Chapter::factory()->published()->create([
+            'part_id' => $publishedPart->id,
+        ]);
+
+        $publishedSection = Section::factory()->published()->create([
+            'chapter_id' => $publishedChapter->id,
+        ]);
+
+        $archivedCertification = Certification::factory()->create([
+            'status' => CertificationStatus::Archived,
+        ]);
+
+        $draftPart = Part::factory()->published()->create([
+            'certification_id' => $archivedCertification->id,
+        ]);
+
+        $chapterUnderDraftPart = Chapter::factory()->published()->create([
+            'part_id' => $draftPart->id,
+        ]);
+
+        // ここでエラーになっている変数を確実に定義します
+        $sectionUnderDraftPart = Section::factory()->published()->create([
+            'chapter_id' => $chapterUnderDraftPart->id,
+        ]);
 
         $policy = new SectionPolicy;
 
