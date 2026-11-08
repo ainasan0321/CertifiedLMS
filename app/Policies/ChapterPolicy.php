@@ -40,9 +40,9 @@ class ChapterPolicy
             default => $chapter->status === ContentStatus::Published
                 && $chapter->part->certification->status === CertificationStatus::Published // 資格も公開中である
                 && $auth->enrollments()
-                ->where('id', request()->query('enrollment_id'))
-                ->where('certification_id', $chapter->part->certification_id)
-                ->exists(),
+                    ->where('id', request()->query('enrollment_id'))
+                    ->where('certification_id', $chapter->part->certification_id)
+                    ->exists(),
         };
     }
 
