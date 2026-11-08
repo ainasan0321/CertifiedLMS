@@ -33,6 +33,7 @@ class SectionViewPolicy
         }
 
         return $user->enrollments()
+            ->where('id', request()->query('enrollment_id'))
             ->where('certification_id', $part->certification_id)
             ->whereIn('status', [
                 EnrollmentStatus::Learning->value,

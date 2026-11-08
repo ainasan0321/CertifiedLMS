@@ -38,7 +38,7 @@ class PartController extends Controller
 
     public function show(Part $part, ShowAction $action): View
     {
-        abort_unless(Gate::allows('view', $part), 404);
+        $this->authorize('view', $part); // 変更
 
         return view('part.management.show', [
             'part' => $action($part),

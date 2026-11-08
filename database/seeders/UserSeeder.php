@@ -103,7 +103,7 @@ class UserSeeder extends Seeder
             ])
             ->create();
 
-        User::factory()
+        $student = User::factory()
             ->student()
             ->state([
                 'name' => '受講生花子',
@@ -115,6 +115,12 @@ class UserSeeder extends Seeder
                 'email_verified_at' => $now,
             ])
             ->create();
+
+        $certification = \App\Models\Certification::first();
+        
+        if ($certification) {
+            $student->certifications()->attach($certification->id);
+        }
 
         // 面談残数 0 の受講生(残数 0 での予約拒否を実機確認するためのアカウント)。
         // Plan 紐づけ・受講登録・面談回数の消化は PlanSeeder / EnrollmentSeeder / MentoringSeeder が行う。

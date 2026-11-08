@@ -44,7 +44,11 @@ class SectionPolicy
         return $section->status === ContentStatus::Published
             && $section->chapter->status === ContentStatus::Published
             && $section->chapter->part->status === ContentStatus::Published
-            && $section->chapter->part->certification->status === CertificationStatus::Published;
+            && $section->chapter->part->certification->status === CertificationStatus::Published
+            && $auth->enrollments()
+            ->where('id', request()->query('enrollment_id'))
+            ->where('certification_id', $section->chapter->part->certification_id)
+            ->exists();
     }
 
     public function create(User $auth, Chapter $chapter): bool
