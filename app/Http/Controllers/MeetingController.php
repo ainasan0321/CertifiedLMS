@@ -224,7 +224,7 @@ class MeetingController extends Controller
         // ===========================================
         // 【追記】通知基盤:面談予約確定時の通知発火（コーチ宛て）
         // ===========================================
-        if (assignedCoach) {
+        if ($assignedCoach) {
             $formattedDate = $scheduledAt->isoFormat('YYYY年MM月DD日(ddd) HH:mm');
             Notification::sendNotification(
                 $assignedCoach,
@@ -252,7 +252,7 @@ class MeetingController extends Controller
 
         $actor = auth()->user();
 
-        DB::transaction(function () use ($meeting, $actor) {
+        DB::transaction(function () use ($meeting, $actor, $refundAction) {
             $locked = Meeting::query()->whereKey($meeting->id)->lockForUpdate()->first();
             if ($locked === null || $locked->status !== MeetingStatus::Reserved) {
                 throw MeetingStatusTransitionException::forCancel();
@@ -267,12 +267,16 @@ class MeetingController extends Controller
                 'canceled_by_user_id' => $actor->id,
                 'canceled_at' => now(),
             ]);
+
+            // 受講生(student)のモデルと、面談のIDを渡して実行
+            $refundAction($locked->student, $locked->id); // 変更
+
         });
 
         // ===========================================
         // 【追記】通知基盤:面談キャンセル時の通知発火（相手宛て）
         // ===========================================
-        $targetUser::null;
+        $targetUser = null;
 
         if ($actor->id === $meeting->student_id) {
             // 受講生がキャンセルした場合：コーチ宛
@@ -283,6 +287,9 @@ class MeetingController extends Controller
         }
 
         if ($targetUser) {
+
+            $formattedDate = $meeting->scheduled_at->format('Y-m-d H:i');
+
             Notification::sendNotification(
                 $targetUser,
                 '面談がキャンセルされました',
