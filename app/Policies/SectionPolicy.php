@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\CertificationStatus;
 use App\Enums\ContentStatus;
 use App\Enums\UserRole;
 use App\Models\Certification;
@@ -42,7 +43,8 @@ class SectionPolicy
 
         return $section->status === ContentStatus::Published
             && $section->chapter->status === ContentStatus::Published
-            && $section->chapter->part->status === ContentStatus::Published;
+            && $section->chapter->part->status === ContentStatus::Published
+            && $section->chapter->part->certification->status === CertificationStatus::Published;
     }
 
     public function create(User $auth, Chapter $chapter): bool

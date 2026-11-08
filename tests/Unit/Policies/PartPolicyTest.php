@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Policies;
 
+use App\Enums\CertificationStatus;
 use App\Models\Certification;
 use App\Models\CertificationCoachAssignment;
 use App\Models\Part;
@@ -58,8 +59,18 @@ class PartPolicyTest extends TestCase
     public function test_student_view_published_only(): void
     {
         $student = User::factory()->student()->create();
-        $publishedPart = Part::factory()->published()->create();
-        $draftPart = Part::factory()->draft()->create();
+        $publishedCertification = Certification::factory()->create([
+            'status' => CertificationStatus::Published,
+        ]);
+
+        $publishedPart = Part::factory()->published()->create([
+            'certification_id' => $publishedCertification->id,
+        ]);
+
+        $draftPart = Part::factory()->draft()->create([
+            'certification_id' => $publishedCertification->id,
+        ]);
+
         $policy = new PartPolicy;
 
         $this->assertTrue($policy->view($student, $publishedPart));

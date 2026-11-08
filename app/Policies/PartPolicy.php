@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\CertificationStatus;
 use App\Enums\ContentStatus;
 use App\Enums\UserRole;
 use App\Models\Certification;
@@ -33,7 +34,9 @@ class PartPolicy
         return match ($auth->role) {
             UserRole::Admin => true,
             UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $part->certification_id)->exists(), // 変更
-            default => $part->status === ContentStatus::Published,
+            default => $part->status === ContentStatus::Published
+                && $part->certification->status === CertificationStatus::Published, // 資格も公開中である
+
         };
     }
 

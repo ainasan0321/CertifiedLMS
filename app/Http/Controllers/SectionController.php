@@ -30,7 +30,7 @@ class SectionController extends Controller
 {
     public function show(Section $section, ShowAction $action): View
     {
-        $this->authorize('view', $section);
+        abort_unless(Gate::allows('view', $section), 404);
 
         return view('section.management.show', [
             'section' => $action($section),

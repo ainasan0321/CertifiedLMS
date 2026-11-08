@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\CertificationStatus;
 use App\Enums\ContentStatus;
 use App\Enums\EnrollmentStatus;
 use App\Enums\UserRole;
@@ -101,7 +102,12 @@ class EnrollmentController extends Controller
         Enrollment $enrollment,
         ShowAction $action,
     ): Response {
+
         $this->authorize('view', $enrollment);
+
+        if (auth()->user()->role === UserRole::Student) {
+            abort_if($enrollment->certification->status !== CertificationStatus::Published, 404);
+        }
 
         $action($enrollment);
 
