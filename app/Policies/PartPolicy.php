@@ -33,11 +33,16 @@ class PartPolicy
     {
         return match ($auth->role) {
             UserRole::Admin => true,
-            UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $part->certification_id)->exists(), // 変更
-            default => $part->status === ContentStatus::Published
-                && $part->certification->status === CertificationStatus::Published, // 資格も公開中である
 
-        };
+            UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $part->certification_id)->exists(), // 変更
+            
+            default => $part->status === ContentStatus::Published
+                && $part->certification->status === CertificationStatus::Published // 資格も公開中である
+                && $auth->enrollments()
+                ->where('id', request()->query('enrollment_id')) // リクエストのenrollment_idと一致するか
+                ->where('certification_id', $part->certification_id) // その登録が教材の資格と一致するか
+                ->exists(),
+                };
     }
 
     public function create(User $auth, Certification $certification): bool

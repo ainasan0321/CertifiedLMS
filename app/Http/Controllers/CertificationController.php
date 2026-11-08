@@ -22,8 +22,8 @@ use App\UseCases\Certification\StoreAction;
 use App\UseCases\Certification\UnpublishAction;
 use App\UseCases\Certification\UpdateAction;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\View\View;
 
 /**
  * admin 用の資格マスタ管理画面 Controller。CRUD と公開状態遷移（publish / unpublish / archive）を提供する。
