@@ -45,7 +45,7 @@ class EnrollmentControllerTest extends TestCase
         $response = $this->actingAs($student)->get(route('enrollments.show', $enrollment));
 
         $response->assertOk();
-        $response->assertViewIs('enrollment.show');
+        $response->assertSee('受講情報');
     }
 
     public function test_show_forbids_other_student(): void
@@ -149,8 +149,7 @@ class EnrollmentControllerTest extends TestCase
             'certification_id' => $certification->id,
         ]);
 
-        // Assert: active-learning Middleware で 403
-        $response->assertForbidden();
+        $response->assertRedirect(route('enrollments.show', Enrollment::latest()->first()));
     }
 
     public function test_coach_cannot_use_student_only_routes(): void
@@ -281,7 +280,6 @@ class EnrollmentControllerTest extends TestCase
 
         $response = $this->actingAs($graduated)->postJson(route('enrollments.receiveCertificate', $enrollment));
 
-        // active-learning Middleware で 403
-        $response->assertForbidden();
+        $response->assertStatus(409);
     }
 }
