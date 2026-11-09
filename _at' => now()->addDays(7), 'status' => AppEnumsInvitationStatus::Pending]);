@@ -1,0 +1,14 @@
+[90m= [39m[34;4mApp\Models\Invitation[39;24m {#8374
+    [34mid[39m: [32m"[39m[32m01m6znka2dc451wahzj2kdqb2r[39m[32m"[39m,
+    [34muser_id[39m: [32m"[39m[32m01m6znk9y3ev9xrdyk9gtk8hzr[39m[32m"[39m,
+    [34memail[39m: [32m"[39m[32mstudent@certify-lms.test[39m[32m"[39m,
+    [34mrole[39m: [32m"[39m[32mstudent[39m[32m"[39m,
+    [34minvited_by_user_id[39m: [32m"[39m[32m01m6znk9y003kf3gfk7twhtv5d[39m[32m"[39m,
+    [34mexpires_at[39m: [32m"[39m[32m2026-09-17 17:08:06[39m[32m"[39m,
+    [34maccepted_at[39m: [32m"[39m[32m2026-09-12 17:08:06[39m[32m"[39m,
+    [34mrevoked_at[39m: [36mnull[39m,
+    [34mstatus[39m: [32m"[39m[32maccepted[39m[32m"[39m,
+    [34mcreated_at[39m: [32m"[39m[32m2026-09-10 17:08:06[39m[32m"[39m,
+    [34mupdated_at[39m: [32m"[39m[32m2026-09-12 17:08:06[39m[32m"[39m,
+    [34mdeleted_at[39m: [36mnull[39m,
+  }

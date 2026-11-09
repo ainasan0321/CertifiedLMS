@@ -339,4 +339,18 @@ class OnboardingTest extends TestCase
             'meeting_url' => null,
         ]);
     }
+
+    public function test_store_fails_when_passwords_do_not_match(): void
+    {
+        $invitation = $this->freshInvitation();
+
+        $response = $this->postJson($this->postUrl($invitation), [
+            'name' => '太郎',
+            'password' => 'secret-pass',
+            'password_confirmation' => 'different-pass', // わざと違う値を設定
+        ]);
+
+        $response->assertStatus(422); // 422エラー（バリデーション失敗）を期待
+        $response->assertInvalid(['password']);
+    }
 }
