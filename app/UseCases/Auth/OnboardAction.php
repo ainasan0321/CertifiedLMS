@@ -66,7 +66,8 @@ final class OnboardAction
             $attrs = [
                 'name' => $validated['name'],
                 'bio' => $validated['bio'] ?? null,
-                'password' => Hash::make($validated['password']),
+                'password' => $validated['password'], // 変更
+                'status' => UserStatus::InProgress, // 変更
                 'profile_setup_completed' => true,
                 'email_verified_at' => $now,
             ];
