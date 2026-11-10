@@ -57,6 +57,12 @@ class EnrollmentController extends Controller
             ->forUser($user)
             ->with(['user', 'certification.category', 'latestStatusLog']);
 
+        if ($user->role === UserRole::Coach) {
+            $query->whereHas('certification', function ($q) use ($user) {
+                $q->whereIn('id', $user->assignedCertifications()->pluck('certifications.id'));
+            });
+        }
+
         if ($user->role === UserRole::Admin && $request->boolean('with_trashed')) {
             $query->withTrashed();
         }
