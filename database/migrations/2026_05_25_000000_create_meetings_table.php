@@ -38,6 +38,8 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->timestamps();
 
+            $table->unique(['coach_id', 'scheduled_at']); //追加
+
             // 受講生別履歴一覧 / 自動完了 Schedule Command 高速化のための補助 INDEX
             $table->index(['student_id', 'scheduled_at']);
             $table->index(['status', 'scheduled_at']);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Meeting;
 
 use App\Enums\MeetingQuotaTransactionType;
+use App\Enums\EnrollmentStatus;
 use App\Enums\MeetingStatus;
 use App\Models\Certification;
 use App\Models\CoachAvailability;
@@ -248,7 +249,9 @@ class MeetingControllerTest extends TestCase
         $coach = User::factory()->coach()->create();
         $certification = Certification::factory()->published()->create();
         $this->attachCoach($certification, $coach, $admin);
-        $enrollment = Enrollment::factory()->for($student, 'user')->for($certification)->learning()->create();
+        $enrollment = Enrollment::factory()->for($student, 'user')->for($certification)->create([
+            'status' => EnrollmentStatus::Passed->value,
+        ]);
 
         $response = $this->actingAs($student)->get(route('meetings.create', $enrollment));
 
