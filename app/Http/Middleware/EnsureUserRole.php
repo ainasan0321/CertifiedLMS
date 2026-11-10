@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Enums\UserRole;
+use App\Enums\UserStatus;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,6 +24,10 @@ class EnsureUserRole
 
         if (! $user || ! in_array($user->role->value, $roles, true)) {
             abort(403);
+        }
+
+        if ($user->role === UserRole::Student && $user->status === UserStatus::Graduated) {
+            abort(403, 'プラン期間が満了しました。');
         }
 
         return $next($request);
