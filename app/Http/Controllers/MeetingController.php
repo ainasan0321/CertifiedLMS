@@ -184,7 +184,7 @@ class MeetingController extends Controller
             $coachLoadService,
             $quotaService,
             $consumeAction,
-            $assignedCoach,
+            &$assignedCoach,
         ) {
             if ($quotaService->remaining($student) < 1) {
                 throw new InsufficientMeetingQuotaException;
