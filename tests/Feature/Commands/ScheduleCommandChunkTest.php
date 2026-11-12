@@ -12,6 +12,8 @@ use App\Models\Meeting;
 use App\Models\Plan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Database\Eloquent\Factories\Sequence;
+use Symfony\Component\Uid\Ulid;
 use Tests\TestCase;
 
 /**
@@ -32,9 +34,12 @@ class ScheduleCommandChunkTest extends TestCase
     public function test_graduate_expired_users_processes_all_records_across_chunks(): void
     {
         $plan = Plan::factory()->published()->create();
-        User::factory()->inProgress()->withPlan($plan)->count(self::COUNT)->create([
-            'plan_expires_at' => now()->subDay(),
-        ]);
+        User::factory()->inProgress()->withPlan($plan)->count(self::COUNT)->state(new Sequence(
+            fn (Sequence $sequence) => [
+                'id' => Ulid::generate(now()->subSeconds(200)->addMilliseconds($sequence->index)),
+                'plan_expires_at' => now()->subDay(),
+            ],
+        ))->create();
 
         $this->artisan('users:graduate-expired')->assertExitCode(0);
 
@@ -46,9 +51,12 @@ class ScheduleCommandChunkTest extends TestCase
 
     public function test_fail_expired_enrollments_processes_all_records_across_chunks(): void
     {
-        Enrollment::factory()->learning()->count(self::COUNT)->create([
-            'exam_date' => now()->subDay()->toDateString(),
-        ]);
+        Enrollment::factory()->learning()->count(self::COUNT)->state(new Sequence(
+            fn (Sequence $sequence) => [
+                'id' => Ulid::generate(now()->subSeconds(200)->addMilliseconds($sequence->index)),
+                'exam_date' => now()->subDay()->toDateString(),
+            ],
+        ))->create();
 
         $this->artisan('enrollments:fail-expired')->assertExitCode(0);
 
