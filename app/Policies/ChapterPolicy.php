@@ -38,10 +38,13 @@ class ChapterPolicy
             // 詳細表示: Chapter の親の Part が担当資格に属しているか判定
             UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $chapter->part->certification_id)->exists(), // 変更
             default => $chapter->status === ContentStatus::Published
-                && $chapter->part->certification->status === CertificationStatus::Published // 資格も公開中である
+                && $chapter->part->certification->status === CertificationStatus::Published
                 && $auth->enrollments()
-                    ->where('id', request()->query('enrollment_id'))
                     ->where('certification_id', $chapter->part->certification_id)
+                    ->when(
+                        request()->query('enrollment_id'),
+                        fn ($q, $enrollmentId) => $q->where('id', $enrollmentId)
+                    )
                     ->exists(),
         };
     }

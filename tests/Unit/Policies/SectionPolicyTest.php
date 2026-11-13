@@ -43,6 +43,8 @@ class SectionPolicyTest extends TestCase
             'status' => CertificationStatus::Published,
         ]);
 
+        \App\Models\Enrollment::factory()->for($student, 'user')->for($publishedCertification)->learning()->create();
+
         $publishedPart = Part::factory()->published()->create([
             'certification_id' => $publishedCertification->id,
         ]);

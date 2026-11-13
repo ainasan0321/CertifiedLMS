@@ -26,7 +26,7 @@ class SectionPolicy
         return match ($auth->role) {
             UserRole::Admin => true,
             // 一覧表示: 親の Chapter -> Part が担当資格に属しているか判定
-            UserRole::Coach => $auth->assignCertifications()->where('certifications.id', $chapter->part->certification_id)->exists(), // 変更
+            UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $chapter->part->certification_id)->exists(), // 変更
             default => false,
         };
     }
@@ -46,8 +46,11 @@ class SectionPolicy
             && $section->chapter->part->status === ContentStatus::Published
             && $section->chapter->part->certification->status === CertificationStatus::Published
             && $auth->enrollments()
-                ->where('id', request()->query('enrollment_id'))
                 ->where('certification_id', $section->chapter->part->certification_id)
+                ->when(
+                    request()->query('enrollment_id'),
+                    fn ($q, $enrollmentId) => $q->where('id', $enrollmentId)
+                )
                 ->exists();
     }
 
