@@ -37,10 +37,13 @@ class PartPolicy
             UserRole::Coach => $auth->assignedCertifications()->where('certifications.id', $part->certification_id)->exists(), // 変更
 
             default => $part->status === ContentStatus::Published
-                && $part->certification->status === CertificationStatus::Published // 資格も公開中である
+                && $part->certification->status === CertificationStatus::Published
                 && $auth->enrollments()
-                    ->where('id', request()->query('enrollment_id')) // リクエストのenrollment_idと一致するか
-                    ->where('certification_id', $part->certification_id) // その登録が教材の資格と一致するか
+                    ->where('certification_id', $part->certification_id)
+                    ->when(
+                        request()->query('enrollment_id'),
+                        fn ($q, $enrollmentId) => $q->where('id', $enrollmentId)
+                    )
                     ->exists(),
         };
     }
