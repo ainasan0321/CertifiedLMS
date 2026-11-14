@@ -36,7 +36,9 @@ class ChapterController extends Controller
 
     public function store(Part $part, StoreRequest $request, StoreAction $action): RedirectResponse
     {
-        abort_unless(Gate::allows('view', $chapter), 404);
+        $this->authorize('create', [Chapter::class, $part]);
+
+        $chapter = $action($part, $request->validated());
 
         return redirect()
             ->route('admin.chapters.show', $chapter)
