@@ -149,7 +149,7 @@ class EnrollmentControllerTest extends TestCase
             'certification_id' => $certification->id,
         ]);
 
-        $response->assertRedirect(route('enrollments.show', Enrollment::latest()->first()));
+        $response->assertForbidden();
     }
 
     public function test_coach_cannot_use_student_only_routes(): void
@@ -280,6 +280,6 @@ class EnrollmentControllerTest extends TestCase
 
         $response = $this->actingAs($graduated)->postJson(route('enrollments.receiveCertificate', $enrollment));
 
-        $response->assertStatus(409);
+        $response->assertForbidden();
     }
 }
