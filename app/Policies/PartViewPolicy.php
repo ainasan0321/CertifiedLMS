@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\CertificationStatus;
 use App\Enums\EnrollmentStatus;
 use App\Enums\UserRole;
 use App\Models\Part;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 /**
  * 受講生視点での Part 閲覧可否を判定する Policy。教材管理側の `PartPolicy` (admin / coach 用) とは別 Gate
