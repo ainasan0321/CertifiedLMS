@@ -6,6 +6,8 @@ namespace App\Http\Middleware;
 
 use App\Enums\CertificationStatus;
 use App\Enums\UserRole;
+use App\Enums\UserStatus;
+use App\Models\Enrollment;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,12 +25,12 @@ final class EnsureActiveLearning
     {
         $user = $request->user();
 
-        if ($user === null) {
+        if ($user === null || $user->status !== UserStatus::InProgress) {
             abort(403, 'プラン期間が満了しました。プラン機能はご利用いただけません。プロフィール / 修了証は引き続きアクセス可能です。');
         }
 
         $enrollment = $request->route('enrollment');
-        if ($enrollment && $user->role === UserRole::Student) {
+        if ($enrollment instanceof Enrollment && $user->role === UserRole::Student) {
             abort_if($enrollment->certification->status !== CertificationStatus::Published, 404);
         }
 
