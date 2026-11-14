@@ -36,8 +36,6 @@ class ChapterController extends Controller
 
     public function store(Part $part, StoreRequest $request, StoreAction $action): RedirectResponse
     {
-        $this->authorize('create', [Chapter::class, $part]);
-
         $chapter = $action($part, $request->validated());
 
         return redirect()
