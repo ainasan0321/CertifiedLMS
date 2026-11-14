@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Models\User;
 use App\Services\EnrollmentStatsService;
 use App\UseCases\Dashboard\ViewModels\AdminDashboardViewModel;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 
 /**
  * 管理者ダッシュボードの ViewModel を組み立てる Action。
@@ -26,12 +27,31 @@ final class FetchAdminDashboardAction
 
     public function __construct(
         private readonly EnrollmentStatsService $stats,
+        private readonly CacheRepository $cache,
     ) {}
 
     public function __invoke(User $admin): AdminDashboardViewModel
     {
-        $kpi = $this->safe(fn () => $this->stats->adminKpi());
-        $completionRate = $this->safe(fn () => $this->stats->completionRateByCertification());
+        $ttl = (int) config('dashboard.cache_ttl', 300);
+        $kpiKey = (string) (config('dashboard.admin_kpi_cache_key') ?? 'dashboard:admin:kpi');
+        $rateKey = (string) (config('dashboard.admin_completion_rate_cache_key') ?? 'dashboard:admin:completion_rate');
+
+
+        $kpi = $this->safe(fn () => $this->cache->remember(
+            $kpiKey,
+            $ttl,
+            fn () => $this->stats->adminKpi(),
+        ));
+
+        $rawCompletionRate = $this->safe(fn () => $this->cache->remember(
+            $rateKey,
+            $ttl,
+            fn () => $this->stats->completionRateByCertification()->values()->all(),
+        ));
+
+        $completionRate = $rawCompletionRate !== null
+            ? collect($rawCompletionRate)
+            : null;
 
         $byCertificationTop10 = $kpi !== null
             ? collect($kpi['by_certification'])->take(10)
