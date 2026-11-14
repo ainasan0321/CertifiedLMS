@@ -18,6 +18,7 @@ use App\Services\CompletionEligibilityService;
 use App\Services\Contracts\WeaknessAnalysisServiceContract;
 use App\Services\LearningCalendarService;
 use App\Services\LearningHourTargetService;
+use App\Services\LearningProgressService;
 use App\Services\MeetingQuotaService;
 use App\Services\PlanExpirationService;
 use App\Services\StreakService;
@@ -53,6 +54,7 @@ final class FetchStudentDashboardAction
         private readonly CompletionEligibilityService $completion,
         private readonly MeetingQuotaService $meetingQuota,
         private readonly PlanExpirationService $planExpiration,
+        private readonly LearningProgressService $progressService,
     ) {}
 
     public function __invoke(User $student): StudentDashboardViewModel
@@ -99,7 +101,7 @@ final class FetchStudentDashboardAction
      */
     private function buildEnrollmentCards($learningEnrollments): Collection
     {
-        $progressMap = $this->safe(fn () => $this->batchCalculateProgress($learningEnrollments)) ?? [];
+        $progressMap = $this->safe(fn () => $this->progressService->batchCalculateRatios($learningEnrollments)) ?? [];
 
         return $learningEnrollments
             ->map(fn (Enrollment $enrollment) => $this->buildCard($enrollment, $progressMap[$enrollment->id] ?? null))

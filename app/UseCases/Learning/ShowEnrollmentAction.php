@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace App\UseCases\Learning;
 
 use App\Enums\ContentStatus;
-use App\Models\Chapter;
 use App\Models\Enrollment;
-use App\Models\Part;
-use App\Services\Learning\ProgressSummary;
 use App\Services\LearningHourTargetService;
 use App\Services\SectionQuestionScoreService;
 use App\Services\StreakService;
-use Illuminate\Support\Facades\DB;
+use App\Services\LearningProgressService;
 
 /**
  * /learning/enrollments/{enrollment} (2 階層目、教材 Part 一覧) のデータを準備する Action。
@@ -28,6 +25,7 @@ final class ShowEnrollmentAction
         private readonly StreakService $streakService,
         private readonly LearningHourTargetService $hourTargetService,
         private readonly SectionQuestionScoreService $scoreService,
+        private readonly LearningProgressService $progressService,
     ) {}
 
     /**
@@ -66,7 +64,7 @@ final class ShowEnrollmentAction
             'parts' => $parts,
             'tab' => $tab,
             'completedSectionIds' => $sectionProgresses,
-            'progress' => $this->summarizeProgress($enrollment),
+            'progress' => $this->progressService->summarize($enrollment),
             'streak' => $this->streakService->calculate($enrollment->user),
             'hourTargetSummary' => $this->hourTargetService->compute($enrollment),
             'quizScoreSummaries' => $quizScoreSummaries,
