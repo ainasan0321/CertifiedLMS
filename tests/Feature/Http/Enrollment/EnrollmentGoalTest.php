@@ -19,8 +19,8 @@ class EnrollmentGoalTest extends TestCase
 
     public function test_student_can_manage_their_own_goals(): void
     {
-        $student = User::factory()->student()->create();
-        $certification = Certification::factory()->create();
+        $student = User::factory()->student()->inProgress()->create();
+        $certification = Certification::factory()->published()->create();
 
         $enrollment = Enrollment::factory()->create([
             'user_id' => $student->id,
