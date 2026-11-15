@@ -9,6 +9,7 @@ use App\Exceptions\Enrollment\EnrollmentInvalidTransitionException;
 use App\Models\Enrollment;
 use App\Services\DefaultEnrollmentService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * 受講生による受講解除(SoftDelete) Action。learning 状態の Enrollment のみ削除可。
@@ -38,5 +39,8 @@ final class DestroyAction
 
             $this->defaultEnrollmentService->resolveAfterStatusChange($user, $enrollment);
         });
+
+        Cache::forget((string) (config('dashboard.admin_kpi_cache_key') ?? 'dashboard:admin:kpi'));
+        Cache::forget((string) (config('dashboard.admin_completion_rate_cache_key') ?? 'dashboard:admin:completion_rate'));
     }
 }
