@@ -142,4 +142,6 @@ sail bin pint --test     # 整形漏れの確認（CI 相当のチェック）
 
 - `PUSHER_*` — チャットのリアルタイム配信に使用します。有効にする場合は Pusher のキーを取得して設定し、`BROADCAST_DRIVER=pusher` に変更してください。未設定（既定の `BROADCAST_DRIVER=log`）でもメッセージの送受信自体は動作し、相手画面へのリアルタイム反映のみ行われません
 
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` — コーチの Google カレンダー連携（OAuth 認可・空き枠除外・予定自動登録）に使用します。未設定でも面談の空き枠表示・予約・キャンセルはフォールバックして動作します。なお、`google_credentials` テーブルのトークンは平文で保存されるため、本番運用時は Laravel の `encrypted` キャスト等による暗号化保存を推奨します 
+
 新しい環境変数やセットアップ手順を追加した場合は、`.env.example` と本 README に追記し、チームの誰でも環境を再現できる状態を保ってください。

@@ -13,6 +13,7 @@ use App\Models\Meeting;
 use App\Models\Notification;
 use App\Models\User;
 use App\Services\CoachMeetingLoadService;
+use App\Services\GoogleCalendarService;
 use App\Services\MeetingAvailabilityService;
 use App\Services\MeetingQuotaService;
 use App\UseCases\MeetingQuota\ConsumeQuotaAction;
@@ -28,13 +29,14 @@ final class StoreAction
         private readonly CoachMeetingLoadService $coachLoadService,
         private readonly MeetingQuotaService $quotaService,
         private readonly ConsumeQuotaAction $consumeAction,
+        private readonly GoogleCalendarService $googleCalendarService,
     ) {}
 
     public function __invoke(Enrollment $enrollment, Carbon $scheduledAt, ?string $topic): Meeting
     {
         $student = $enrollment->user;
 
-        return DB::transaction(function () use ($enrollment, $student, $scheduledAt, $topic) {
+        $meeting = DB::transaction(function () use ($enrollment, $student, $scheduledAt, $topic) {
             if ($this->quotaService->remaining($student) < 1) {
                 throw new InsufficientMeetingQuotaException;
             }
@@ -76,6 +78,16 @@ final class StoreAction
 
             return $meeting->fresh();
         });
+
+        // トランザクション確定後に Google カレンダーへ予定登録（失敗時は null でフォールバック）
+        $eventId = $this->googleCalendarService->createMeetingEvent(
+            $meeting->loadMissing(['coach.googleCredential', 'student'])
+        );
+        if ($eventId !== null) {
+            $meeting->update(['google_calendar_event_id' => $eventId]);
+        }
+
+        return $meeting->fresh();
     }
 
     /**
@@ -96,6 +108,8 @@ final class StoreAction
                 $q->where('scheduled_at', $scheduledAt)
                     ->whereIn('status', [MeetingStatus::Reserved->value, MeetingStatus::Completed->value]);
             })
-            ->get();
+            ->get()
+            ->reject(fn (User $coach) => $this->googleCalendarService->hasConflict($coach, $scheduledAt))
+            ->values();
     }
 }

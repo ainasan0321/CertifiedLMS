@@ -10,6 +10,7 @@ use App\Exceptions\Mentoring\MeetingStatusTransitionException;
 use App\Models\Meeting;
 use App\Models\Notification;
 use App\Models\User;
+use App\Services\GoogleCalendarService;
 use App\UseCases\MeetingQuota\RefundQuotaAction;
 use Illuminate\Support\Facades\DB;
 
@@ -17,11 +18,12 @@ final class CancelAction
 {
     public function __construct(
         private readonly RefundQuotaAction $refundAction,
+        private readonly GoogleCalendarService $googleCalendarService,
     ) {}
 
     public function __invoke(Meeting $meeting, User $actor): Meeting
     {
-        return DB::transaction(function () use ($meeting, $actor) {
+        $canceled = DB::transaction(function () use ($meeting, $actor) {
             $locked = Meeting::query()->whereKey($meeting->id)->lockForUpdate()->first();
             if ($locked === null || $locked->status !== MeetingStatus::Reserved) {
                 throw MeetingStatusTransitionException::forCancel();
@@ -56,5 +58,12 @@ final class CancelAction
 
             return $locked->fresh();
         });
+
+        // トランザクション確定後に Google カレンダーの予定を削除（失敗時は無視して継続）
+        $this->googleCalendarService->deleteMeetingEvent(
+            $canceled->loadMissing('coach.googleCredential')
+        );
+
+        return $canceled;
     }
 }

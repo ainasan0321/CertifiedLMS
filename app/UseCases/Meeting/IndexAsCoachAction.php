@@ -11,7 +11,8 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 final class IndexAsCoachAction
 {
     /**
-     * @param  array{filter?: string|null, student?: string|null, enrollment?: string|null}  $filters
+     * @param array{filter?: string|null, student?: string|null, enrollment?: string|null} $filters
+     *
      * @return array{meetings: LengthAwarePaginator, filter: string, studentFilter: ?string, enrollmentFilter: ?string}
      */
     public function __invoke(User $coach, array $filters): array

@@ -6,8 +6,8 @@ namespace Tests\Unit\Policies;
 
 use App\Enums\CertificationStatus;
 use App\Models\Certification;
-use App\Models\Enrollment;
 use App\Models\CertificationCoachAssignment;
+use App\Models\Enrollment;
 use App\Models\Part;
 use App\Models\User;
 use App\Policies\PartPolicy;
@@ -64,7 +64,7 @@ class PartPolicyTest extends TestCase
             'status' => CertificationStatus::Published,
         ]);
 
-        \App\Models\Enrollment::factory()->for($student, 'user')->for($publishedCertification)->learning()->create();
+        Enrollment::factory()->for($student, 'user')->for($publishedCertification)->learning()->create();
 
         $publishedPart = Part::factory()->published()->create([
             'certification_id' => $publishedCertification->id,
