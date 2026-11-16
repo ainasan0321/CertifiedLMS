@@ -15,10 +15,9 @@ class IndexActionTest extends TestCase
     /**
      * A basic unit test example.
      */
-
     use RefreshDatabase;
 
-public function test_filters_upcoming_past_and_all_meetings_and_returns_remaining_quota(): void
+    public function test_filters_upcoming_past_and_all_meetings_and_returns_remaining_quota(): void
     {
         $student = User::factory()->student()->inProgress()->create(['max_meetings' => 5]);
         $otherStudent = User::factory()->student()->inProgress()->create();

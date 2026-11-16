@@ -22,8 +22,6 @@ use App\Models\Meeting;
 // use App\Models\Notification;
 use App\Models\User;
 use App\Services\MeetingQuotaService;
-use App\Services\CoachMeetingLoadService;
-use App\Services\MeetingAvailabilityService;
 use App\UseCases\Meeting\CancelAction;
 use App\UseCases\Meeting\FetchAvailabilityAction;
 use App\UseCases\Meeting\IndexAction;
@@ -31,8 +29,6 @@ use App\UseCases\Meeting\IndexAsCoachAction;
 use App\UseCases\Meeting\ShowAction;
 use App\UseCases\Meeting\StoreAction;
 use App\UseCases\Meeting\UpsertMemoAction;
-use App\UseCases\MeetingQuota\ConsumeQuotaAction;
-use App\UseCases\MeetingQuota\RefundQuotaAction;
 use Carbon\Carbon;
 // use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
@@ -130,7 +126,7 @@ class MeetingController extends Controller
      * 受講生の予約申請。残面談回数を確認し、空き枠から過去実績最少のコーチを自動割当して reserved で確定する。
      * 同時刻 race condition は (coach_id, scheduled_at) UNIQUE 違反として検知し 409 へ変換する。
      */
-    public function store(Enrollment $enrollment, StoreRequest $request, StoreAction $action,): RedirectResponse
+    public function store(Enrollment $enrollment, StoreRequest $request, StoreAction $action): RedirectResponse
     {
         $meeting = $action(
             $enrollment,
@@ -163,7 +159,7 @@ class MeetingController extends Controller
     /**
      * 担当コーチによる面談メモ作成・更新。canceled の面談にはメモを残せない。
      */
-    public function upsertMemo(Meeting $meeting, UpsertMemoRequest $request, UpsertMemoAction $action,): RedirectResponse 
+    public function upsertMemo(Meeting $meeting, UpsertMemoRequest $request, UpsertMemoAction $action): RedirectResponse
     {
         $action($meeting, $request->validated('body'));
 

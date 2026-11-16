@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\UseCases\Learning;
 
-use App\Enums\ContentStatus;
 use App\Enums\CertificationStatus;
+use App\Enums\ContentStatus;
 use App\Models\Section;
 use App\Models\SectionProgress;
 use App\Models\User;

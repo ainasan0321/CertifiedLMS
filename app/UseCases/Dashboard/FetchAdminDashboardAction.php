@@ -36,7 +36,6 @@ final class FetchAdminDashboardAction
         $kpiKey = (string) (config('dashboard.admin_kpi_cache_key') ?? 'dashboard:admin:kpi');
         $rateKey = (string) (config('dashboard.admin_completion_rate_cache_key') ?? 'dashboard:admin:completion_rate');
 
-
         $kpi = $this->safe(fn () => $this->cache->remember(
             $kpiKey,
             $ttl,

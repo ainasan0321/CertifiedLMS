@@ -204,5 +204,4 @@ class EnrollmentController extends Controller
             ->route('enrollments.show', $enrollment)
             ->with('success', '目標受験日を更新しました。');
     }
-
 }

@@ -11,8 +11,8 @@ use App\Models\Enrollment;
 use App\Models\Meeting;
 use App\Models\Plan;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Factories\Sequence;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Symfony\Component\Uid\Ulid;
 use Tests\TestCase;
 

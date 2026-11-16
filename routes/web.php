@@ -17,6 +17,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\EnrollmentGoalController;
 use App\Http\Controllers\EnrollmentManagementController;
+use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LearningHourTargetController;
 use App\Http\Controllers\MeetingController;
@@ -643,4 +644,16 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('{thread}', [AdminQaThreadController::class, 'show'])->name('show');
         Route::delete('{thread}', [AdminQaThreadController::class, 'destroy'])->name('destroy');
         Route::delete('{thread}/replies/{reply}', [AdminQaThreadController::class, 'destroyReply'])->name('replies.destroy');
+    });
+
+// ============================================================
+// コーチ専用ルート: Google カレンダー連携（設定 > 面談設定タブ）(S-A-01)
+// ============================================================
+Route::middleware(['auth', 'role:coach'])
+    ->prefix('settings')
+    ->name('settings.')
+    ->group(function () {
+        Route::get('google-calendar/connect', [GoogleCalendarController::class, 'redirect'])->name('google-calendar.redirect');
+        Route::get('google-calendar/callback', [GoogleCalendarController::class, 'callback'])->name('google-calendar.callback');
+        Route::delete('google-calendar', [GoogleCalendarController::class, 'destroy'])->name('google-calendar.destroy');
     });

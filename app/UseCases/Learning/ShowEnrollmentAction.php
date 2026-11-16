@@ -7,9 +7,9 @@ namespace App\UseCases\Learning;
 use App\Enums\ContentStatus;
 use App\Models\Enrollment;
 use App\Services\LearningHourTargetService;
+use App\Services\LearningProgressService;
 use App\Services\SectionQuestionScoreService;
 use App\Services\StreakService;
-use App\Services\LearningProgressService;
 
 /**
  * /learning/enrollments/{enrollment} (2 階層目、教材 Part 一覧) のデータを準備する Action。

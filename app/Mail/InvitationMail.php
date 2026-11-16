@@ -6,8 +6,8 @@ namespace App\Mail;
 
 use App\Models\Invitation;
 use App\Services\InvitationTokenService;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;

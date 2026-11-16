@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Meeting;
 
-use App\Enums\MeetingQuotaTransactionType;
 use App\Enums\EnrollmentStatus;
+use App\Enums\MeetingQuotaTransactionType;
 use App\Enums\MeetingStatus;
 use App\Models\Certification;
 use App\Models\CoachAvailability;

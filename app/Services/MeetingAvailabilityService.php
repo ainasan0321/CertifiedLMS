@@ -28,18 +28,30 @@ final class MeetingAvailabilityService
      *
      * @return Collection<int, array{slot_start: Carbon, slot_end: Carbon, available_coach_count: int}>
      */
+    public function __construct(
+        private readonly GoogleCalendarService $googleCalendarService,
+    ) {}
+
     public function slotsForCertification(Certification $certification, Carbon $date): Collection
     {
         $dayStart = $date->copy()->startOfDay();
         $dayEnd = $date->copy()->endOfDay();
         $dayOfWeek = $date->dayOfWeek;
 
-        $coaches = $certification->coaches()->get();
+        $coaches = $certification->coaches()->with('googleCredential')->get();
         if ($coaches->isEmpty()) {
             return collect();
         }
 
         $coachIds = $coaches->pluck('id')->all();
+
+        // Google 連携済コーチのみ、対象日の予定（Busy時間帯）を取得（失敗時は空配列へフォールバック）
+        $googleBusyByCoach = [];
+        foreach ($coaches as $coach) {
+            if ($coach->googleCredential !== null) {
+                $googleBusyByCoach[$coach->id] = $this->googleCalendarService->getBusyPeriodsForDay($coach, $date);
+            }
+        }
 
         $availabilities = CoachAvailability::query()
             ->whereIn('coach_id', $coachIds)
@@ -71,7 +83,19 @@ final class MeetingAvailabilityService
                 $booked = $bookedByCoach[$coachId] ?? [];
 
                 if (! in_array($slotKey, $booked, true)) {
-                    $slotCounts[$slotKey] = ($slotCounts[$slotKey] ?? 0) + 1;
+                    $slotEnd = $slot->copy()->addHour();
+                    $hasGoogleConflict = false;
+
+                    foreach ($googleBusyByCoach[$coachId] ?? [] as $period) {
+                        if ($period['start']->lt($slotEnd) && $period['end']->gt($slot)) {
+                            $hasGoogleConflict = true;
+                            break;
+                        }
+                    }
+
+                    if (! $hasGoogleConflict) {
+                        $slotCounts[$slotKey] = ($slotCounts[$slotKey] ?? 0) + 1;
+                    }
                 }
 
                 $slot->addHour();
