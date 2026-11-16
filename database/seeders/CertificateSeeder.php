@@ -15,7 +15,9 @@ use App\Models\Enrollment;
 use App\Models\EnrollmentStatusLog;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Mpdf\Mpdf;
 
 /**
  * 卒業生向けの修了証 + 過去 Enrollment 補完シーダー。
@@ -24,14 +26,6 @@ use Illuminate\Support\Str;
  * 既に Certificate を発行している(動作確認用 demo)。本 Seeder はそれを残しつつ、
  * `UserSeeder` で生成される graduated 受講生 3 名に過去 Enrollment + Certificate を補完して
  * 「修了 → 卒業」フローの履歴を画面で見える状態にする。
- *
- * **設計思想(Seeder 業界標準: 状態補完)**:
- *
- * 1. **graduated 受講生に過去 Enrollment + Certificate**: 各 graduated 受講生に 1 件の passed Enrollment を作り、
- *    Certificate を発行する。Certificate は永続データなので卒業後も DL 可能(プラン機能はロックされるが修了証 DL は可)。
- * 2. **EnrollmentStatusLog 同梱**: learning → passed の遷移ログを併せて INSERT し、状態遷移履歴が成立する状態にする。
- *
- * 依存順序: `UserSeeder` → `PlanSeeder` → `CertificationSeeder` → `EnrollmentSeeder` → 本 Seeder。
  */
 final class CertificateSeeder extends Seeder
 {
@@ -45,30 +39,28 @@ final class CertificateSeeder extends Seeder
 
         if ($graduatedStudents->isEmpty()) {
             $this->command?->info('CertificateSeeder: graduated 受講生が存在しないため補完なし。');
+        } else {
+            $publishedCertifications = Certification::query()
+                ->where('status', CertificationStatus::Published->value)
+                ->orderBy('created_at')
+                ->get();
 
-            return;
-        }
+            if ($publishedCertifications->isEmpty()) {
+                $this->command?->warn('CertificateSeeder: 公開済資格がありません。先に CertificationSeeder を実行してください。');
+            } else {
+                foreach ($graduatedStudents as $i => $student) {
+                    $certification = $publishedCertifications->get($i % $publishedCertifications->count());
+                    if ($certification === null) {
+                        continue;
+                    }
 
-        $publishedCertifications = Certification::query()
-            ->where('status', CertificationStatus::Published->value)
-            ->orderBy('created_at')
-            ->get();
-
-        if ($publishedCertifications->isEmpty()) {
-            $this->command?->warn('CertificateSeeder: 公開済資格がありません。先に CertificationSeeder を実行してください。');
-
-            return;
-        }
-
-        foreach ($graduatedStudents as $i => $student) {
-            $certification = $publishedCertifications->get($i % $publishedCertifications->count());
-            if ($certification === null) {
-                continue;
+                    $enrollment = $this->createPastEnrollment($student, $certification, $i);
+                    $this->issueCertificateForEnrollment($enrollment);
+                }
             }
-
-            $enrollment = $this->createPastEnrollment($student, $certification, $i);
-            $this->issueCertificateForEnrollment($enrollment);
         }
+
+        $this->generateMissingPdfFiles();
     }
 
     /**
@@ -121,12 +113,42 @@ final class CertificateSeeder extends Seeder
     {
         $issuedAt = $enrollment->passed_at ?? now();
 
-        $certificate = Certificate::factory()
+        Certificate::factory()
             ->forEnrollment($enrollment)
             ->state([
                 'pdf_path' => 'certificates/'.Str::ulid().'.pdf',
                 'issued_at' => $issuedAt,
             ])
             ->create();
+    }
+
+    /**
+     * 保管領域に PDF 実体が存在しない修了証すべてに対して、日本語修了証 PDF を生成・保存する。
+     */
+    private function generateMissingPdfFiles(): void
+    {
+        $disk = Storage::disk('private');
+
+        $certificates = Certificate::query()
+            ->with(['user', 'certification'])
+            ->get();
+
+        foreach ($certificates as $certificate) {
+            if ($disk->exists($certificate->pdf_path)) {
+                continue;
+            }
+
+            $html = view('certificates.pdf', [
+                'certificate' => $certificate,
+            ])->render();
+
+            $mpdf = new Mpdf([
+                'mode' => 'ja',
+                'format' => 'A4-L',
+                'tempDir' => storage_path('app/mpdf-tmp'),
+            ]);
+            $mpdf->WriteHTML($html);
+            $disk->put($certificate->pdf_path, $mpdf->Output('', 'S'));
+        }
     }
 }

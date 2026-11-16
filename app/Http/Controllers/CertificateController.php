@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers;
+
+use App\Models\Certificate;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+class CertificateController extends Controller
+{
+    public function download(Certificate $certificate): StreamedResponse
+    {
+        $this->authorize('download', $certificate);
+
+        $disk = Storage::disk('private');
+
+        abort_unless($disk->exists($certificate->pdf_path), 404);
+
+        $certificate->loadMissing('certification');
+        $fileName = sprintf('certificate_%s.pdf', $certificate->id);
+
+        return $disk->download($certificate->pdf_path, $fileName);
+    }
+}
