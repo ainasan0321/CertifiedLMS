@@ -10,7 +10,10 @@ use App\Exceptions\Certification\EnrollmentNotPassedException;
 use App\Models\Certificate;
 use App\Models\Enrollment;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Mpdf\Mpdf;
+use RuntimeException;
 
 /**
  * 修了証を発行するユースケース。受講生自己発火型の修了処理 `\App\UseCases\Enrollment\ReceiveCertificateAction` から呼び出される。
@@ -44,13 +47,33 @@ final class IssueAction
                 throw new CertificateAlreadyIssuedException;
             }
 
-            return Certificate::create([
+            $certificate = Certificate::create([
                 'user_id' => $enrollment->user_id,
                 'enrollment_id' => $enrollment->id,
                 'certification_id' => $enrollment->certification_id,
                 'pdf_path' => 'certificates/'.Str::ulid().'.pdf',
                 'issued_at' => now(),
             ]);
+
+            $certificate->loadMissing(['user', 'certification']);
+
+            $html = view('certificates.pdf', [
+                'certificate' => $certificate,
+            ])->render();
+
+            $mpdf = new Mpdf([
+                'mode' => 'ja',
+                'format' => 'A4-L',
+                'tempDir' => storage_path('app/mpdf-tmp'),
+            ]);
+            $mpdf->WriteHTML($html);
+            $pdfBinary = $mpdf->Output('', 'S');
+
+            if (! Storage::disk('private')->put($certificate->pdf_path, $pdfBinary)) {
+                throw new RuntimeException('修了証 PDF の保存に失敗しました。');
+            }
+
+            return $certificate;
         });
     }
 }
