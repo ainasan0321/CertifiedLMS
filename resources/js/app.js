@@ -11,6 +11,7 @@ import { initFlash } from './components/flash';
 import { initSidebarDrawer } from './components/sidebar-drawer';
 import { initTextareaCounter } from './components/textarea-counter';
 import { initEnrollmentSwitchers } from './components/enrollment-switcher';
+import { initNotificationPopover } from './components/notification-popover';
 import { initAiChatWidget } from './ai-chat/floating-widget';
 import { initLearningCalendar } from './dashboard/learning-calendar';
 
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSidebarDrawer();
     initTextareaCounter();
     initEnrollmentSwitchers();
+    initNotificationPopover();
     initAiChatWidget();
     initLearningCalendar();
 });
