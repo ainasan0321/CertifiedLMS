@@ -58,7 +58,7 @@ class Notification extends Model
         ]);
 
         if ($targetUser->email) {
-            Mail::to($targetUser->email)->send(new NotificationCreatedMail($notification));
+            Mail::to($targetUser->email)->queue(new NotificationCreatedMail($notification));
         }
 
         return $notification;

@@ -17,6 +17,7 @@ use App\Models\Part;
 use App\Models\Section;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -362,7 +363,7 @@ class AiChatTest extends TestCase
         ]);
 
         Http::fake([
-            '://googleapis.com*' => fn () => throw new \Illuminate\Http\Client\ConnectionException('Connection timed out'),
+            '://googleapis.com*' => fn () => throw new ConnectionException('Connection timed out'),
         ]);
 
         $student = $this->createLearningStudent();
