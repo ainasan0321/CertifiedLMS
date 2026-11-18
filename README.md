@@ -135,6 +135,7 @@ sail bin pint --test     # 整形漏れの確認（CI 相当のチェック）
 - league/commonmark（教材本文の Markdown レンダリング）
 - Pusher（チャットのリアルタイム配信）
 - Docker（Laravel Sail）
+- Stripe（追加面談パックの都度決済・Webhook 連携）
 
 ## 環境変数
 
@@ -145,5 +146,15 @@ sail bin pint --test     # 整形漏れの確認（CI 相当のチェック）
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` — コーチの Google カレンダー連携（OAuth 認可・空き枠除外・予定自動登録）に使用します。未設定でも面談の空き枠表示・予約・キャンセルはフォールバックして動作します。なお、`google_credentials` テーブルのトークンは平文で保存されるため、本番運用時は Laravel の `encrypted` キャスト等による暗号化保存を推奨します
 
 - `AI_CHAT_ENABLED` / `GEMINI_API_KEY` / `GEMINI_MODEL` / `AI_CHAT_DAILY_LIMIT` / `AI_CHAT_HISTORY_LIMIT` / `AI_CHAT_AUTO_TITLE` — 受講生向け AI 相談機能（Gemini API 連携）に使用します。[Google AI Studio](https://google.com) で API キーを取得して `GEMINI_API_KEY` に設定してください。未設定の場合でも画面表示は動作し、送信時に利用できない旨の案内が表示されます（`AI_CHAT_ENABLED=false` にすると画面・ルートごと無効化できます）
+
+- `STRIPE_KEY` / `STRIPE_SECRET` / `STRIPE_WEBHOOK_SECRET` — 受講生による追加面談パック購入（Stripe Checkout 連携および決済完了 Webhook の署名検証）に使用します。未設定でも他機能は動作しますが、決済画面への遷移および Webhook 受信を行う場合は Stripe ダッシュボード（テスト環境）のキーを設定してください
+
+## Stripe 決済・Webhook 受信のローカル確認手順
+
+- 追加面談パック購入の決済完了通知（`checkout.session.completed`）をローカル環境（Laravel Sail）で実際に受信・検証する手順です。
+
+### 1. 環境変数の設定
+
+Stripe ダッシュボード（テスト環境）から API キーを取得し、`.env` に設定します。
 
 新しい環境変数やセットアップ手順を追加した場合は、`.env.example` と本 README に追記し、チームの誰でも環境を再現できる状態を保ってください。
