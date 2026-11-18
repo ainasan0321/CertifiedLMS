@@ -20,6 +20,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;
 
+/**
+ * @group external-api
+ */
 class GoogleCalendarTest extends TestCase
 {
     use RefreshDatabase;
