@@ -282,9 +282,9 @@ class GoogleCalendarServiceTest extends TestCase
         $eventsResource = Mockery::mock(EventsResource::class);
 
         $eventsResource->shouldReceive('insert')
-        ->once()
-        ->with('primary', Mockery::type(Event::class))
-        ->andReturn($createdEvent);
+            ->once()
+            ->with('primary', Mockery::type(Event::class))
+            ->andReturn($createdEvent);
 
         // 削除済み予定（404 / 410 Not Found 等）でも例外を外に投げず正常終了すること
         $eventsResource->shouldReceive('delete')
@@ -292,20 +292,20 @@ class GoogleCalendarServiceTest extends TestCase
             ->with('primary', 'created-event-999')
             ->andThrow(new \RuntimeException('Not Found (404)'));
 
-            $calendar = Mockery::mock(Calendar::class);
+        $calendar = Mockery::mock(Calendar::class);
 
-            $calendar->events = $eventsResource;
+        $calendar->events = $eventsResource;
 
-            $service = $this->makeTestableService(mockCalendar: $calendar);
+        $service = $this->makeTestableService(mockCalendar: $calendar);
 
-            $eventId = $service->createMeetingEvent($meeting);
+        $eventId = $service->createMeetingEvent($meeting);
 
-            $this->assertSame('created-event-999', $eventId);
+        $this->assertSame('created-event-999', $eventId);
 
-            $meeting->update(['google_calendar_event_id' => $eventId]);
+        $meeting->update(['google_calendar_event_id' => $eventId]);
 
-            $service->deleteMeetingEvent($meeting);
+        $service->deleteMeetingEvent($meeting);
 
-            $this->assertTrue(true);
+        $this->assertTrue(true);
     }
 }

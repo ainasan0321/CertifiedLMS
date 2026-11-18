@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\AiChat;
 
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 
 class GeminiClient
@@ -38,7 +39,7 @@ class GeminiClient
                     times: (int) config('ai-chat.gemini.retry_times', 2),
                     sleepMilliseconds: (int) config('ai-chat.gemini.retry_sleep_ms', 100),
                     when: function (\Throwable $exception): bool {
-                        if ($exception instanceof \Illuminate\Http\Client\RequestException) {
+                        if ($exception instanceof RequestException) {
                             return $exception->response->serverError();
                         }
 

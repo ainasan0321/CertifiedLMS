@@ -6,12 +6,18 @@ namespace App\Notifications;
 
 use App\Models\Meeting;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Queue\SerializesModels;
 
-class MeetingReminderNotification extends Notification
+class MeetingReminderNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, SerializesModels;
+
+    public int $tries = 3;
+
+    public array $backoff = [10, 60, 300];
 
     public $meeting;
 
@@ -24,6 +30,7 @@ class MeetingReminderNotification extends Notification
     {
         $this->meeting = $meeting;
         $this->window = $window;
+        $this->afterCommit();
     }
 
     /**

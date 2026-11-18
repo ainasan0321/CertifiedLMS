@@ -6,21 +6,29 @@ namespace App\Mail;
 
 use App\Models\Notification;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class NotificationCreatedMail extends Mailable
+class NotificationCreatedMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
+
+    public int $tries = 3;
+
+    public array $backoff = [10, 60, 300];
 
     /**
      * Create a new message instance.
      */
     // 通知モデルを受け取る
     // メール本文のテンプレートに渡したいデータ（ユーザー情報や注文内容など）を、外部から受け取ってクラス内に保持するために使います。
-    public function __construct(public Notification $notification) {}
+    public function __construct(public Notification $notification)
+    {
+        $this->afterCommit();
+    }
 
     /**
      * Get the message envelope.

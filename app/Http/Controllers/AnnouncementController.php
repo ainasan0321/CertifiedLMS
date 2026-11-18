@@ -8,13 +8,14 @@ use App\Enums\AnnouncementTargetType;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Http\Requests\Announcement\StoreAnnouncementRequest;
+use App\Mail\NotificationCreatedMail;
 use App\Models\Announcement;
 use App\Models\Certification;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class AnnouncementController extends Controller
@@ -89,8 +90,7 @@ class AnnouncementController extends Controller
             ]);
 
             foreach ($targets as $user) {
-                Notification::create([
-                    'id' => (string) Str::ulid(),
+                $notification = Notification::create([
                     'notifiable_type' => User::class,
                     'notifiable_id' => $user->id,
                     'data' => [
@@ -101,6 +101,11 @@ class AnnouncementController extends Controller
                     ],
                     'read_at' => null,
                 ]);
+
+                if ($user->email) {
+                    Mail::to($user->email)
+                        ->queue(new NotificationCreatedMail($notification));
+                }
             }
         });
 
