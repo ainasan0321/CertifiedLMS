@@ -34,6 +34,18 @@ class GeminiClient
         $start = microtime(true);
         try {
             $response = Http::timeout((int) config('ai-chat.gemini.timeout', 30))
+                ->retry(
+                    times: (int) config('ai-chat.gemini.retry_times', 2),
+                    sleepMilliseconds: (int) config('ai-chat.gemini.retry_sleep_ms', 100),
+                    when: function (\Throwable $exception): bool {
+                        if ($exception instanceof \Illuminate\Http\Client\RequestException) {
+                            return $exception->response->serverError();
+                        }
+
+                        return true;
+                    },
+                    throw: false,
+                )
                 ->acceptJson()
                 ->post($url, $payload);
         } catch (\Throwable $e) {

@@ -18,6 +18,9 @@ use Mockery;
 use Stripe\Checkout\Session;
 use Tests\TestCase;
 
+/**
+ * @group external-api
+ */
 class MeetingQuotaCheckoutTest extends TestCase
 {
     /**
@@ -260,5 +263,67 @@ class MeetingQuotaCheckoutTest extends TestCase
             ['HTTP_STRIPE_SIGNATURE' => $this->buildStripeSignature($payload, $secret), 'CONTENT_TYPE' => 'application/json'],
             $payload,
         )->assertOk();
+    }
+
+    public function test_webhook_rejects_missing_signature_header(): void
+    {
+        config(['services.stripe.webhook_secret' => 'whsec_test_secret']);
+
+        $payload = json_encode(['id' => 'evt_missing_sig', 'type' => 'checkout.session.completed'], JSON_THROW_ON_ERROR);
+
+        $this->call(
+            'POST',
+            route('webhooks.stripe'),
+            [],
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            $payload,
+        )->assertStatus(400);
+    }
+
+    public function test_webhook_is_idempotent_when_exact_same_event_id_is_delivered_twice(): void
+    {
+        $secret = 'whsec_test_secret';
+        config(['services.stripe.webhook_secret' => $secret]);
+
+        $student = $this->createStudent(UserStatus::InProgress, 2);
+        $pack = $this->createPack(MeetingPackStatus::Published, 5, 12000);
+
+        $payment = Payment::create([
+            'user_id' => $student->id,
+            'meeting_pack_id' => $pack->id,
+            'quantity' => 5,
+            'amount' => 12000,
+            'currency' => 'jpy',
+            'status' => PaymentStatus::Pending,
+            'stripe_checkout_session_id' => 'cs_test_same_event_1',
+        ]);
+
+        $payload = json_encode([
+            'id' => 'evt_exact_duplicate_1',
+            'type' => 'checkout.session.completed',
+            'data' => [
+                'object' => [
+                    'id' => 'cs_test_same_event_1',
+                    'object' => 'checkout.session',
+                    'payment_status' => 'paid',
+                    'payment_intent' => 'pi_test_same_1',
+                    'metadata' => [
+                        'payment_id' => $payment->id,
+                    ],
+                ],
+            ],
+        ], JSON_THROW_ON_ERROR);
+
+        $sigHeader = $this->buildStripeSignature($payload, $secret);
+
+        // 1回目・2回目ともに全く同じペイロード・同じ event_id を送信
+        $this->call('POST', route('webhooks.stripe'), [], [], [], ['HTTP_STRIPE_SIGNATURE' => $sigHeader, 'CONTENT_TYPE' => 'application/json'], $payload)->assertOk();
+        $this->call('POST', route('webhooks.stripe'), [], [], [], ['HTTP_STRIPE_SIGNATURE' => $sigHeader, 'CONTENT_TYPE' => 'application/json'], $payload)->assertOk();
+
+        $quotaService = app(MeetingQuotaService::class);
+        $this->assertSame(7, $quotaService->remaining($student));
+        $this->assertDatabaseCount('meeting_quota_transactions', 1);
     }
 }

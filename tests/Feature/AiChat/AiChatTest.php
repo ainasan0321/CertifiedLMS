@@ -20,6 +20,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
+/**
+ * @group external-api
+ */
 class AiChatTest extends TestCase
 {
     /**
@@ -313,5 +316,177 @@ class AiChatTest extends TestCase
             ->delete(route('ai-chat.conversations.destroy', $conversation))
             ->assertRedirect(route('ai-chat.index'));
         $this->assertSoftDeleted('ai_chat_conversations', ['id' => $conversation->id]);
+    }
+
+    public function test_gemini_empty_response_returns_502_and_records_error_message(): void
+    {
+        config([
+            'ai-chat.enabled' => true,
+            'ai-chat.gemini.api_key' => 'test-api-key',
+        ]);
+
+        Http::fake([
+            '://googleapis.com*' => Http::response([
+                'candidates' => [[
+                    'content' => ['parts' => [['text' => '']]],
+                ]],
+            ], 200),
+        ]);
+
+        $student = $this->createLearningStudent();
+        $conversation = AiChatConversation::create([
+            'user_id' => $student->id,
+            'title' => '空応答テスト',
+            'last_message_at' => now(),
+        ]);
+
+        $this->actingAs($student)
+            ->postJson(route('ai-chat.conversations.messages.store', $conversation), [
+                'content' => '空応答になる質問',
+            ])
+            ->assertStatus(502);
+
+        $this->assertDatabaseHas('ai_chat_messages', [
+            'conversation_id' => $conversation->id,
+            'role' => AiChatMessageRole::Assistant->value,
+            'status' => AiChatMessageStatus::Error->value,
+            'error_detail' => 'Empty candidate response',
+        ]);
+    }
+
+    public function test_gemini_connection_exception_returns_502_and_records_error_message(): void
+    {
+        config([
+            'ai-chat.enabled' => true,
+            'ai-chat.gemini.api_key' => 'test-api-key',
+        ]);
+
+        Http::fake([
+            '://googleapis.com*' => fn () => throw new \Illuminate\Http\Client\ConnectionException('Connection timed out'),
+        ]);
+
+        $student = $this->createLearningStudent();
+        $conversation = AiChatConversation::create([
+            'user_id' => $student->id,
+            'title' => '通信エラーテスト',
+            'last_message_at' => now(),
+        ]);
+
+        $this->actingAs($student)
+            ->postJson(route('ai-chat.conversations.messages.store', $conversation), [
+                'content' => 'タイムアウトする質問',
+            ])
+            ->assertStatus(502)
+            ->assertJson(['upstream_status' => 503]);
+
+        $this->assertDatabaseHas('ai_chat_messages', [
+            'conversation_id' => $conversation->id,
+            'role' => AiChatMessageRole::Assistant->value,
+            'status' => AiChatMessageStatus::Error->value,
+        ]);
+    }
+
+    public function test_gemini_retries_on_transient_server_error_and_succeeds(): void
+    {
+        config([
+            'ai-chat.enabled' => true,
+            'ai-chat.gemini.api_key' => 'test-api-key',
+            'ai-chat.auto_title' => false,
+            'ai-chat.gemini.retry_times' => 2,
+            'ai-chat.gemini.retry_sleep_ms' => 1,
+        ]);
+
+        Http::fake([
+            '://googleapis.com*' => Http::sequence()
+                ->push(['error' => 'Temporary 503'], 503)
+                ->push([
+                    'candidates' => [[
+                        'content' => ['parts' => [['text' => 'リトライ後に成功した回答']]],
+                    ]],
+                ], 200),
+        ]);
+
+        $student = $this->createLearningStudent();
+        $conversation = AiChatConversation::create([
+            'user_id' => $student->id,
+            'title' => 'リトライテスト',
+            'last_message_at' => now(),
+        ]);
+
+        $this->actingAs($student)
+            ->postJson(route('ai-chat.conversations.messages.store', $conversation), [
+                'content' => '1回目失敗2回目成功の質問',
+            ])
+            ->assertOk()
+            ->assertJsonPath('assistant_message.content', 'リトライ後に成功した回答');
+
+        Http::assertSentCount(2);
+    }
+
+    public function test_gemini_sends_conversation_history_in_expected_prompt_structure(): void
+    {
+        config([
+            'ai-chat.enabled' => true,
+            'ai-chat.gemini.api_key' => 'test-api-key',
+            'ai-chat.auto_title' => false,
+        ]);
+
+        Http::fake([
+            '://googleapis.com*' => Http::response([
+                'candidates' => [[
+                    'content' => ['parts' => [['text' => '2回目の回答']]],
+                ]],
+            ], 200),
+        ]);
+
+        $student = $this->createLearningStudent();
+        $conversation = AiChatConversation::create([
+            'user_id' => $student->id,
+            'title' => '履歴構造テスト',
+            'last_message_at' => now(),
+        ]);
+
+        // 1件目（User）を作成し、2分前の時刻にする
+        $this->travelTo(now()->subMinutes(2));
+        $conversation->messages()->create([
+            'role' => AiChatMessageRole::User,
+            'status' => AiChatMessageStatus::Completed,
+            'content' => '最初の質問',
+        ]);
+
+        // 2件目（Assistant）を作成し、1分前の時刻にする
+        $this->travelTo(now()->subMinute());
+        $conversation->messages()->create([
+            'role' => AiChatMessageRole::Assistant,
+            'status' => AiChatMessageStatus::Completed,
+            'content' => '最初の回答',
+        ]);
+
+        // 現在時刻に戻す
+        $this->travelBack();
+
+        // 3件目（追加の質問）を送信
+        $this->actingAs($student)
+            ->postJson(route('ai-chat.conversations.messages.store', $conversation), [
+                'content' => '追加の質問',
+            ])
+            ->assertOk();
+
+        $recorded = Http::recorded();
+        $this->assertCount(1, $recorded);
+
+        $secondRequestData = $recorded->last()[0]->data();
+        $contents = array_values($secondRequestData['contents'] ?? []);
+
+        $this->assertSame([
+            ['role' => 'user', 'parts' => [['text' => '最初の質問']]],
+            ['role' => 'model', 'parts' => [['text' => '最初の回答']]],
+            ['role' => 'user', 'parts' => [['text' => '追加の質問']]],
+        ], $contents);
+
+        $this->assertStringContainsString(
+            'AI 講師',
+            (string) data_get($secondRequestData, 'systemInstruction.parts.0.text')
+        );
     }
 }
