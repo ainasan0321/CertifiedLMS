@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             EnrollmentGoalSeeder::class,
             AnnouncementSeeder::class,
             GoogleCredentialSeeder::class,
+            AiChatSeeder::class,
         ]);
     }
 }

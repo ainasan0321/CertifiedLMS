@@ -342,4 +342,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(GoogleCredential::class);
     }
+
+    public function aiChatConversations(): HasMany // 追加
+    {
+        return $this->hasMany(AiChatConversation::class);
+    }
 }
