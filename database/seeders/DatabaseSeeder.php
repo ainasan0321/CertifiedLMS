@@ -36,6 +36,7 @@ class DatabaseSeeder extends Seeder
             AnnouncementSeeder::class,
             GoogleCredentialSeeder::class,
             AiChatSeeder::class,
+            PaymentSeeder::class,
         ]);
     }
 }

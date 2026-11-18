@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
+use App\Enums\UserStatus;
 use App\Models\User;
 
 /**
@@ -17,5 +19,11 @@ class MeetingQuotaPolicy
     public function viewHistory(User $auth, User $target): bool
     {
         return $auth->id === $target->id;
+    }
+
+    public function purchase(User $auth): bool
+    {
+        return $auth->role === UserRole::Student
+            && $auth->status === UserStatus::InProgress;
     }
 }
