@@ -8,7 +8,7 @@
 
 | ロール | 機能 |
 |---|---|
-| 受講生（student） | 教材閲覧 / 演習問題・苦手分野ドリル / 模擬試験（分野別ヒートマップ・合格可能性スコア）/ 面談予約 / チャット / 学習時間・進捗・ストリーク管理 / 修了証の受領 |
+| 受講生（student） | 教材閲覧 / 演習問題・苦手分野ドリル / 模擬試験（分野別ヒートマップ・合格可能性スコア）/ 面談予約 / チャット / 学習時間・進捗・ストリーク管理 / 修了証の受領 / AI 相談|
 | コーチ（coach） | 教材・演習問題・模試の管理 / 担当受講生の進捗フォロー / 面談対応・面談メモ / チャット |
 | 管理者（admin） | ユーザー招待・管理 / 資格・資格分類マスタ管理 / 資格へのコーチ割当 / 面談回数の付与 / 全体ダッシュボード |
 
@@ -142,6 +142,8 @@ sail bin pint --test     # 整形漏れの確認（CI 相当のチェック）
 
 - `PUSHER_*` — チャットのリアルタイム配信に使用します。有効にする場合は Pusher のキーを取得して設定し、`BROADCAST_DRIVER=pusher` に変更してください。未設定（既定の `BROADCAST_DRIVER=log`）でもメッセージの送受信自体は動作し、相手画面へのリアルタイム反映のみ行われません
 
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` — コーチの Google カレンダー連携（OAuth 認可・空き枠除外・予定自動登録）に使用します。未設定でも面談の空き枠表示・予約・キャンセルはフォールバックして動作します。なお、`google_credentials` テーブルのトークンは平文で保存されるため、本番運用時は Laravel の `encrypted` キャスト等による暗号化保存を推奨します 
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` — コーチの Google カレンダー連携（OAuth 認可・空き枠除外・予定自動登録）に使用します。未設定でも面談の空き枠表示・予約・キャンセルはフォールバックして動作します。なお、`google_credentials` テーブルのトークンは平文で保存されるため、本番運用時は Laravel の `encrypted` キャスト等による暗号化保存を推奨します
+
+- `AI_CHAT_ENABLED` / `GEMINI_API_KEY` / `GEMINI_MODEL` / `AI_CHAT_DAILY_LIMIT` / `AI_CHAT_HISTORY_LIMIT` / `AI_CHAT_AUTO_TITLE` — 受講生向け AI 相談機能（Gemini API 連携）に使用します。[Google AI Studio](https://google.com) で API キーを取得して `GEMINI_API_KEY` に設定してください。未設定の場合でも画面表示は動作し、送信時に利用できない旨の案内が表示されます（`AI_CHAT_ENABLED=false` にすると画面・ルートごと無効化できます）
 
 新しい環境変数やセットアップ手順を追加した場合は、`.env.example` と本 README に追記し、チームの誰でも環境を再現できる状態を保ってください。
