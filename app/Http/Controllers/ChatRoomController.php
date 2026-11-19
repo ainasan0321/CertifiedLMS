@@ -170,7 +170,7 @@ class ChatRoomController extends Controller
 
         // コーチが返信した場合：受講生への通知
         else {
-            if ($student && student->id !== $user->id) {
+            if ($student && $student->id !== $user->id) {
                 Notification::sendNotification(
                     $student,
                     '新着チャットメッセージ',
