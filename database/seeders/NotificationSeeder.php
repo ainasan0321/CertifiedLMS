@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Mail\NotificationCreatedMail;
 use App\Models\Notification;
 use App\Models\User;
@@ -28,39 +29,56 @@ class NotificationSeeder extends Seeder
         $unreadTarget = 15;
         $readTarget = 15;
 
-        $types = [[
+        $studentCoachTypes = [[
             'title' => '新着チャットメッセージ',
             'type' => 'chat_message_received',
             'body' => '担当者から新しいメッセージが届いています。',
             'url' => '/chat-rooms',
         ],
+        [
+            'title' => '質問に新しい回答が届きました',
+            'type' => 'qa_reply_received',
+            'body' => 'あなたの投稿した質問に新着の回答があります。',
+            'url' => '/qa-board',
+        ],
+        [
+            'title' => '定期面談の予約が確定しました',
+            'type' => 'meeting_reserved',
+            'body' => '面談の予約が確定しました。スケジュールをご確認ください。',
+            'url' => '/meetings',
+        ],
+        [
+            'title' => '面談がキャンセルされました',
+            'type' => 'meeting_canceled',
+            'body' => '予約されていた面談がキャンセルされました。',
+            'url' => '/meetings',
+        ],
+        ];
+
+        $adminTypes = [
             [
-                'title' => '質問に新しい回答が届きました',
-                'type' => 'qa_reply_received',
-                'body' => 'あなたの投稿した質問に新着の回答があります。',
-                'url' => '/qa-board',
+                'title' => 'システムメンテナンスのお知らせ',
+                'type' => 'system_announcement',
+                'body' => '定期メンテナンスの予定をご確認ください。',
+                'url' => '/dashboard',
             ],
             [
-                'title' => '定期面談の予約が確定しました',
-                'type' => 'meeting_reserved',
-                'body' => '面談の予約が確定しました。スケジュールをご確認ください。',
-                'url' => '/meetings',
-            ],
-            [
-                'title' => '面談がキャンセルされました',
-                'type' => 'meeting_canceled',
-                'body' => '予約されていた面談がキャンセルされました。',
-                'url' => '/meetings',
+                'title' => 'プラットフォーム運営通知',
+                'type' => 'system_announcement',
+                'body' => '管理者向けの運営状況サマリが更新されました。',
+                'url' => '/dashboard',
             ],
         ];
 
         foreach ($users as $user) {
+            $types = $user->role === UserRole::Admin ? $adminTypes : $studentCoachTypes;
+            $typeCount = count($types);
             $totalCreated = 0;
 
             // 未読通知を指定件数15件作成
             for ($i = 1; $i <= $unreadTarget; $i++) {
                 $totalCreated++;
-                $base = $types[$totalCreated % 4];
+                $base = $types[$totalCreated % $typeCount];
 
                 $notification = Notification::create([
                     'notifiable_type' => User::class,
@@ -83,7 +101,7 @@ class NotificationSeeder extends Seeder
             // 既読通知15件
             for ($j = 1; $j <= $readTarget; $j++) {
                 $totalCreated++;
-                $base = $types[$totalCreated % 4];
+                $base = $types[$totalCreated % $typeCount];
 
                 $notification = Notification::create([
                     'notifiable_type' => User::class,
@@ -97,7 +115,6 @@ class NotificationSeeder extends Seeder
                     'read_at' => now()->subDays($totalCreated)->addHours(2),
                     'created_at' => now()->subDays($totalCreated),
                 ]);
-
             }
         }
     }
